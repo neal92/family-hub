@@ -1,0 +1,79 @@
+'use server';
+
+/**
+ * @fileOverview Chore suggestion AI agent.
+ *
+ * - suggestChores - A function that handles the chore suggestion process.
+ * - SuggestChoresInput - The input type for the suggestChores function.
+ * - SuggestChoresOutput - The return type for the suggestChores function.
+ */
+
+import {ai} from '@/ai/genkit';
+import {z} from 'genkit';
+
+const SuggestChoresInputSchema = z.object({
+  familyMembers: z.array(
+    z.object({
+      name: z.string().describe('Name of the family member'),
+      age: z.number().describe('Age of the family member'),
+      skills: z.string().describe('Skills of the family member'),
+      availability: z.string().describe('Availability of the family member'),
+    })
+  ).describe('List of family members with their age, skills and availability.'),
+  chores: z.array(
+    z.string().describe('List of chores to be assigned')
+  ).describe('List of chores to be assigned'),
+});
+export type SuggestChoresInput = z.infer<typeof SuggestChoresInputSchema>;
+
+const SuggestChoresOutputSchema = z.array(
+  z.object({
+    familyMember: z.string().describe('Name of the family member'),
+    chore: z.string().describe('Chore assigned to the family member'),
+    reason: z.string().describe('Reason for assigning the chore to the family member'),
+  })
+).describe('List of chore assignments for each family member.');
+export type SuggestChoresOutput = z.infer<typeof SuggestChoresOutputSchema>;
+
+export async function suggestChores(input: SuggestChoresInput): Promise<SuggestChoresOutput> {
+  return suggestChoresFlow(input);
+}
+
+const prompt = ai.definePrompt({
+  name: 'suggestChoresPrompt',
+  input: {schema: SuggestChoresInputSchema},
+  output: {schema: SuggestChoresOutputSchema},
+  prompt: `You are an AI assistant that suggests chore assignments for family members.
+
+Given the following family members and their attributes:
+
+{{#each familyMembers}}
+- Name: {{this.name}}, Age: {{this.age}}, Skills: {{this.skills}}, Availability: {{this.availability}}
+{{/each}}
+
+And the following chores:
+
+{{#each chores}}
+- {{this}}
+{{/each}}
+
+Suggest chore assignments, taking into account each family member's age, skills, and availability. Provide a reason for each assignment.
+
+Format your response as a JSON array of objects, where each object has the following keys:
+- familyMember: The name of the family member.
+- chore: The chore assigned to the family member.
+- reason: The reason for assigning the chore to the family member.
+`,
+});
+
+const suggestChoresFlow = ai.defineFlow(
+  {
+    name: 'suggestChoresFlow',
+    inputSchema: SuggestChoresInputSchema,
+    outputSchema: SuggestChoresOutputSchema,
+  },
+  async input => {
+    const {output} = await prompt(input);
+    return output!;
+  }
+);

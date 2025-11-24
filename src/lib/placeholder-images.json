@@ -1,3 +1,28 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "avatar-1",
+      "description": "Avatar for Sarah",
+      "imageUrl": "https://images.unsplash.com/photo-1598625873873-52f9aefd7d9d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHx3b21hbiUyMHNtaWxpbmd8ZW58MHx8fHwxNzYzOTE3NjMxfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "woman smiling"
+    },
+    {
+      "id": "avatar-2",
+      "description": "Avatar for Tom",
+      "imageUrl": "https://images.unsplash.com/photo-1607031542107-f6f46b5d54e9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxtYW4lMjBwb3J0cmFpdHxlbnwwfHx8fDE3NjM5MjU3NzF8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "man portrait"
+    },
+    {
+      "id": "avatar-3",
+      "description": "Avatar for Emily",
+      "imageUrl": "https://images.unsplash.com/photo-1635899077473-f95555d685e3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHx0ZWVuYWdlciUyMGdpcmx8ZW58MHx8fHwxNzY0MDA0NTg3fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "teenager girl"
+    },
+    {
+      "id": "avatar-4",
+      "description": "Avatar for Ben",
+      "imageUrl": "https://images.unsplash.com/photo-1588953936179-d2a4734c5490?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHx5b3VuZyUyMGJveXxlbnwwfHx8fDE3NjQwMDQ1ODd8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "young boy"
+    }
+  ]
 }
