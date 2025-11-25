@@ -6,16 +6,31 @@ import { Badge } from '@/components/ui/badge';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { UserPlus, Loader2 } from 'lucide-react';
-import { useFirestore } from '@/firebase';
-import { useCollection } from 'react-firebase-hooks/firestore';
-import { collection } from 'firebase/firestore';
+import { useFirestore, useUser as useAuthUser } from '@/firebase';
+import { useCollection, useDocumentData } from 'react-firebase-hooks/firestore';
+import { collection, doc } from 'firebase/firestore';
 import type { User } from '@/lib/types';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
 export default function FamilyPage() {
   const firestore = useFirestore();
-  const [value, loading, error] = useCollection(collection(firestore, 'users'));
+  const { user: authUser, initialising: authLoading } = useAuthUser();
+  const router = useRouter();
 
+  const userRef = authUser ? doc(firestore, 'users', authUser.uid) : null;
+  const [currentUserData, currentUserLoading] = useDocumentData(userRef);
+
+  const [value, loading, error] = useCollection(collection(firestore, 'users'));
   const familyMembers = value?.docs.map(doc => ({ id: doc.id, ...doc.data() } as User));
+
+  const pageLoading = authLoading || currentUserLoading;
+
+  useEffect(() => {
+    if (!pageLoading && currentUserData?.role !== 'admin') {
+      router.replace('/dashboard');
+    }
+  }, [pageLoading, currentUserData, router]);
 
   const getInitials = (name: string) => {
     if (!name) return '';
@@ -25,6 +40,14 @@ export default function FamilyPage() {
     }
     return name.charAt(0).toUpperCase();
   };
+  
+  if (pageLoading || currentUserData?.role !== 'admin') {
+    return (
+        <div className="container mx-auto px-4 py-8 flex justify-center">
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground"/>
+        </div>
+    )
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">

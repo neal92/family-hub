@@ -88,6 +88,7 @@ export default function LoginPage() {
       avatarUrl: user.photoURL || `https://i.pravatar.cc/150?u=${user.uid}`,
       age: additionalData.age ? parseInt(additionalData.age, 10) : null,
       skills: additionalData.skills || '',
+      role: 'member',
     };
     
     setDoc(userRef, profileData, { merge: true }).catch(async (serverError) => {

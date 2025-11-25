@@ -1,13 +1,20 @@
+'use client';
+
 import { documents } from '@/lib/data';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Upload, Download, Trash2, FileText, Shield, HeartPulse, Banknote } from 'lucide-react';
+import { Upload, Download, Trash2, FileText, Shield, HeartPulse, Banknote, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
+import { useFirestore, useUser as useAuthUser } from '@/firebase';
+import { doc } from 'firebase/firestore';
+import { useDocumentData } from 'react-firebase-hooks/firestore';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
 const categoryIcons = {
   Insurance: <Shield className="h-4 w-4" />,
@@ -24,6 +31,30 @@ const categoryColors = {
 }
 
 export default function DocumentsPage() {
+  const firestore = useFirestore();
+  const { user: authUser, initialising: authLoading } = useAuthUser();
+  const router = useRouter();
+
+  const userRef = authUser ? doc(firestore, 'users', authUser.uid) : null;
+  const [currentUserData, currentUserLoading] = useDocumentData(userRef);
+  
+  const pageLoading = authLoading || currentUserLoading;
+
+  useEffect(() => {
+    if (!pageLoading && currentUserData?.role !== 'admin') {
+      router.replace('/dashboard');
+    }
+  }, [pageLoading, currentUserData, router]);
+
+
+  if (pageLoading || currentUserData?.role !== 'admin') {
+    return (
+        <div className="container mx-auto px-4 py-8 flex justify-center">
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground"/>
+        </div>
+    )
+  }
+
   return (
     <div className="container mx-auto px-4 py-8">
       <PageHeader title="Stockage de documents" description="Stockez et accédez en toute sécurité aux documents familiaux importants.">

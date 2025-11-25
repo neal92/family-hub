@@ -6,6 +6,7 @@ export type User = {
   skills?: string;
   availability?: string;
   email?: string;
+  role?: 'admin' | 'member';
 };
 
 export type Event = {

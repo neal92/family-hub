@@ -26,9 +26,14 @@
         "skills": {
           "type": "string",
           "description": "A comma-separated list of the user's skills."
+        },
+        "role": {
+            "type": "string",
+            "description": "The user's role.",
+            "enum": ["admin", "member"]
         }
       },
-      "required": ["name", "email"]
+      "required": ["name", "email", "role"]
     }
   },
   "auth": {

@@ -23,7 +23,12 @@ import {
 } from '@/components/ui/sidebar';
 import Link from 'next/link';
 import { BottomBar, BottomBarItem } from '@/components/bottom-bar';
-import { useAuth } from '@/firebase';
+import { useAuth, useUser as useAuthUser } from '@/firebase';
+import { useDocumentData } from 'react-firebase-hooks/firestore';
+import { doc } from 'firebase/firestore';
+import { useFirestore } from '@/firebase';
+import type { User } from '@/lib/types';
+
 
 const mainNavItems = [
   { href: '/dashboard', icon: Home, label: 'Tableau de bord' },
@@ -34,14 +39,22 @@ const mainNavItems = [
 
 const secondaryNavItems = [
   { href: '/assistant', icon: Sparkles, label: 'Assistant IA' },
-  { href: '/documents', icon: Folder, label: 'Documents' },
-  { href: '/family', icon: Users, label: 'Famille' },
+  { href: '/documents', icon: Folder, label: 'Documents', adminOnly: true },
+  { href: '/family', icon: Users, label: 'Famille', adminOnly: true },
 ]
 
 export function AppSidebar() {
   const pathname = usePathname();
   const { isMobile } = useSidebar();
   const { signOut } = useAuth();
+  const { user: authUser } = useAuthUser();
+  const firestore = useFirestore();
+
+  const userRef = authUser ? doc(firestore, 'users', authUser.uid) : null;
+  const [userData] = useDocumentData(userRef);
+  const currentUser = userData as User | undefined;
+  const isAdmin = currentUser?.role === 'admin';
+
 
   if (isMobile) {
     return (
@@ -95,7 +108,8 @@ export function AppSidebar() {
           ))}
         </SidebarMenu>
         <SidebarMenu>
-          {secondaryNavItems.map((item) => (
+          {secondaryNavItems.map((item) => 
+            (item.adminOnly && !isAdmin) ? null : (
             <SidebarMenuItem key={item.href}>
               <Link href={item.href}>
                 <SidebarMenuButton
