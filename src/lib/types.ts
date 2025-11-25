@@ -30,6 +30,11 @@ export type ShoppingItem = {
   purchased: boolean;
 };
 
+export type ShoppingListCategory = {
+  category: string;
+  items: ShoppingItem[];
+};
+
 export type Document = {
   id: string;
   name: string;
