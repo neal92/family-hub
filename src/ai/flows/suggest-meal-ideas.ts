@@ -27,7 +27,7 @@ export type SuggestMealIdeasInput = z.infer<typeof SuggestMealIdeasInputSchema>;
 const MealIdeaSchema = z.object({
   name: z.string().describe('The name of the meal.'),
   description: z.string().describe('A short, appealing description of the meal.'),
-  recipe: z.string().describe('A simple recipe or preparation steps for the meal.'),
+  recipe: z.string().describe('A complete, step-by-step recipe, including ingredients and instructions. Use markdown for formatting.'),
 });
 
 const SuggestMealIdeasOutputSchema = z.object({
@@ -68,7 +68,7 @@ const prompt = ai.definePrompt({
   name: 'suggestMealIdeasPrompt',
   input: {schema: SuggestMealIdeasInputSchema},
   output: {schema: SuggestMealIdeasOutputSchema},
-  prompt: `You are a meal planning assistant. Your goal is to provide three distinct and appealing meal ideas based on the user's input. For each meal, provide a name, a short description, and a simple recipe.
+  prompt: `You are a meal planning assistant. Your goal is to provide three distinct and appealing meal ideas based on the user's input. For each meal, provide a name, a short description, and a complete, step-by-step recipe formatted with Markdown.
 
 Dietary Restrictions: {{{dietaryRestrictions}}}
 Available Ingredients: {{{availableIngredients}}}
