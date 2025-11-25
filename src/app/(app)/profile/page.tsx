@@ -4,10 +4,9 @@ import { useEffect, useState } from 'react';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useFirestore, useUser as useAuthUser } from '@/firebase';
+import { useFirestore, useUser as useAuthUser, useDoc } from '@/firebase';
 import { doc, setDoc } from 'firebase/firestore';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { useDocumentData } from 'react-firebase-hooks/firestore';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -29,12 +28,12 @@ const profileSchema = z.object({
 type ProfileFormValues = z.infer<typeof profileSchema>;
 
 export default function ProfilePage() {
-  const { user: authUser, initialising: authLoading } = useAuthUser();
+  const { user: authUser, isUserLoading: authLoading } = useAuthUser();
   const firestore = useFirestore();
   const { toast } = useToast();
   
   const userRef = authUser ? doc(firestore, 'users', authUser.uid) : null;
-  const [userData, userDataLoading] = useDocumentData(userRef);
+  const { data: userData, isLoading: userDataLoading } = useDoc(userRef);
 
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);

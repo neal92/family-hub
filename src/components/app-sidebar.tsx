@@ -23,8 +23,7 @@ import {
 } from '@/components/ui/sidebar';
 import Link from 'next/link';
 import { BottomBar, BottomBarItem } from '@/components/bottom-bar';
-import { useAuth, useUser as useAuthUser } from '@/firebase';
-import { useDocumentData } from 'react-firebase-hooks/firestore';
+import { useAuth, useUser as useAuthUser, useDoc } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
 import type { User } from '@/lib/types';
@@ -51,7 +50,7 @@ export function AppSidebar() {
   const firestore = useFirestore();
 
   const userRef = authUser ? doc(firestore, 'users', authUser.uid) : null;
-  const [userData] = useDocumentData(userRef);
+  const { data: userData } = useDoc(userRef);
   const currentUser = userData as User | undefined;
   const isAdmin = currentUser?.role === 'admin';
 

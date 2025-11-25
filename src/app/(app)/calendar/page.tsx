@@ -10,8 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useState, useEffect } from 'react';
-import { useFirestore } from '@/firebase';
-import { useCollection } from 'react-firebase-hooks/firestore';
+import { useFirestore, useCollection } from '@/firebase';
 import { collection } from 'firebase/firestore';
 import type { User } from '@/lib/types';
 
@@ -21,8 +20,7 @@ export default function CalendarPage() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   
   const firestore = useFirestore();
-  const [value, loading] = useCollection(collection(firestore, 'users'));
-  const familyMembers = value?.docs.map(doc => ({ id: doc.id, ...doc.data() } as User));
+  const { data: familyMembers, isLoading: loading } = useCollection(collection(firestore, 'users'));
 
   useEffect(() => {
       setDate(new Date());

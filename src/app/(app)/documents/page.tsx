@@ -10,9 +10,8 @@ import { Upload, Download, Trash2, FileText, Shield, HeartPulse, Banknote, Loade
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
-import { useFirestore, useUser as useAuthUser } from '@/firebase';
+import { useFirestore, useUser as useAuthUser, useDoc } from '@/firebase';
 import { doc } from 'firebase/firestore';
-import { useDocumentData } from 'react-firebase-hooks/firestore';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
@@ -32,11 +31,11 @@ const categoryColors = {
 
 export default function DocumentsPage() {
   const firestore = useFirestore();
-  const { user: authUser, initialising: authLoading } = useAuthUser();
+  const { user: authUser, isUserLoading: authLoading } = useAuthUser();
   const router = useRouter();
 
   const userRef = authUser ? doc(firestore, 'users', authUser.uid) : null;
-  const [currentUserData, currentUserLoading] = useDocumentData(userRef);
+  const { data: currentUserData, isLoading: currentUserLoading } = useDoc(userRef);
   
   const pageLoading = authLoading || currentUserLoading;
 

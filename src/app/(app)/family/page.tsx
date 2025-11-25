@@ -6,8 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { UserPlus, Loader2 } from 'lucide-react';
-import { useFirestore, useUser as useAuthUser } from '@/firebase';
-import { useCollection, useDocumentData } from 'react-firebase-hooks/firestore';
+import { useFirestore, useUser as useAuthUser, useCollection, useDoc } from '@/firebase';
 import { collection, doc } from 'firebase/firestore';
 import type { User } from '@/lib/types';
 import { useRouter } from 'next/navigation';
@@ -15,14 +14,13 @@ import { useEffect } from 'react';
 
 export default function FamilyPage() {
   const firestore = useFirestore();
-  const { user: authUser, initialising: authLoading } = useAuthUser();
+  const { user: authUser, isUserLoading: authLoading } = useAuthUser();
   const router = useRouter();
 
   const userRef = authUser ? doc(firestore, 'users', authUser.uid) : null;
-  const [currentUserData, currentUserLoading] = useDocumentData(userRef);
+  const { data: currentUserData, isLoading: currentUserLoading } = useDoc(userRef);
 
-  const [value, loading, error] = useCollection(collection(firestore, 'users'));
-  const familyMembers = value?.docs.map(doc => ({ id: doc.id, ...doc.data() } as User));
+  const { data: familyMembers, isLoading: loading, error } = useCollection(collection(firestore, 'users'));
 
   const pageLoading = authLoading || currentUserLoading;
 

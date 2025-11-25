@@ -11,25 +11,30 @@ import Link from 'next/link';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useTasks } from '@/contexts/tasks-context';
-import { useFirestore, useUser as useAuthUser } from '@/firebase';
-import { useCollection } from 'react-firebase-hooks/firestore';
-import { collection } from 'firebase/firestore';
+import { useFirestore, useUser as useAuthUser, useDoc, useCollection } from '@/firebase';
+import { collection, doc } from 'firebase/firestore';
 import type { User } from '@/lib/types';
 
 
 export default function DashboardPage() {
-  const { user: authUser } = useAuthUser();
+  const { user: authUser, isUserLoading: authLoading } = useAuthUser();
   const { tasks, toggleTask } = useTasks();
   const firestore = useFirestore();
-  const [value, loading] = useCollection(collection(firestore, 'users'));
-  const familyMembers = value?.docs.map(doc => ({ id: doc.id, ...doc.data() } as User));
+
+  // Fetch only the current user's data
+  const userRef = authUser ? doc(firestore, 'users', authUser.uid) : null;
+  const { data: currentUser, isLoading: userLoading } = useDoc(userRef);
+  
+  // Fetch all family members for tasks and other components that might need them
+  const { data: familyMembers, isLoading: familyMembersLoading } = useCollection(collection(firestore, 'users'));
+
+  const pageLoading = authLoading || userLoading || familyMembersLoading;
 
   const upcomingEvents = events.slice(0, 3);
   const todaysTasks = tasks.filter(t => !t.completed).slice(0, 4);
   const shoppingItemCount = shoppingList.flatMap(c => c.items).filter(i => !i.purchased).length;
 
   const getInitials = (name: string) => name ? name.charAt(0).toUpperCase() : '';
-  const currentUser = familyMembers?.find(m => m.id === authUser?.uid);
 
 
   return (
@@ -39,7 +44,7 @@ export default function DashboardPage() {
         description="Voici ce qui se passe dans votre hub familial aujourd'hui." 
       />
       
-       {loading && (
+       {pageLoading && (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           <Card><CardHeader><CardTitle>Événements à venir</CardTitle></CardHeader><CardContent><Loader2 className="h-8 w-8 animate-spin" /></CardContent></Card>
           <Card><CardHeader><CardTitle>Tâches en attente</CardTitle></CardHeader><CardContent><Loader2 className="h-8 w-8 animate-spin" /></CardContent></Card>
@@ -50,7 +55,7 @@ export default function DashboardPage() {
         </div>
       )}
       
-      {!loading && familyMembers && (
+      {!pageLoading && (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {/* Upcoming Events */}
           <Card className="flex flex-col transition-transform hover:scale-[1.02] hover:shadow-lg">
@@ -90,7 +95,7 @@ export default function DashboardPage() {
             <CardContent className="flex-grow">
               <ul className="space-y-3">
                 {todaysTasks.map(task => {
-                  const member = familyMembers.find(m => m.id === task.assignedTo);
+                  const member = familyMembers?.find(m => m.id === task.assignedTo);
                   return (
                     <li key={task.id} className="flex items-center gap-3">
                       <Checkbox id={`task-dashboard-${task.id}`} checked={task.completed} onCheckedChange={(checked) => toggleTask(task.id, !!checked)} />
