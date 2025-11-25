@@ -23,7 +23,8 @@ export default function ShoppingPage() {
   useEffect(() => {
     if (debouncedItemName.trim().length > 2) {
       setIsAiSuggesting(true);
-      suggestShoppingCategory({ itemName: debouncedItemName })
+      const existingCategories = list.map(c => c.category);
+      suggestShoppingCategory({ itemName: debouncedItemName, existingCategories })
         .then(response => {
           if (response.category) {
             setNewItemCategory(response.category);
@@ -32,7 +33,7 @@ export default function ShoppingPage() {
         .catch(console.error)
         .finally(() => setIsAiSuggesting(false));
     }
-  }, [debouncedItemName]);
+  }, [debouncedItemName, list]);
 
   const handleAddItem = () => {
     if (newItemName.trim() === '' || newItemCategory.trim() === '') return;

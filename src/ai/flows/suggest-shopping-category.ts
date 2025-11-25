@@ -13,6 +13,7 @@ import {z} from 'genkit';
 
 const SuggestShoppingCategoryInputSchema = z.object({
   itemName: z.string().describe("The name of the shopping item."),
+  existingCategories: z.array(z.string()).describe("A list of categories that the user has already created."),
 });
 export type SuggestShoppingCategoryInput = z.infer<typeof SuggestShoppingCategoryInputSchema>;
 
@@ -32,7 +33,14 @@ const prompt = ai.definePrompt({
   output: {schema: SuggestShoppingCategoryOutputSchema},
   prompt: `Tu es un assistant expert en listes de courses. Pour l'article "{{itemName}}", suggère la catégorie de supermarché la plus appropriée en français.
 
-Exemples:
+Voici les catégories que l'utilisateur a déjà créées :
+{{#each existingCategories}}
+- {{this}}
+{{/each}}
+
+Privilégie une de ces catégories si elle est pertinente pour l'article. Si aucune ne correspond, tu peux suggérer une nouvelle catégorie logique.
+
+Exemples de suggestions si aucune catégorie existante ne correspond :
 - Article: Lait -> Catégorie: Produits laitiers
 - Article: Pommes -> Catégorie: Fruits et Légumes
 - Article: Papier toilette -> Catégorie: Hygiène
