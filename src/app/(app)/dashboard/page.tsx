@@ -11,7 +11,7 @@ import Link from 'next/link';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useTasks } from '@/contexts/tasks-context';
-import { useFirestore, useUser as useAuthUser, useDoc, useCollection } from '@/firebase';
+import { useFirestore, useUser as useAuthUser, useDoc, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, doc } from 'firebase/firestore';
 import type { User } from '@/lib/types';
 
@@ -22,11 +22,12 @@ export default function DashboardPage() {
   const firestore = useFirestore();
 
   // Fetch only the current user's data
-  const userRef = authUser ? doc(firestore, 'users', authUser.uid) : null;
+  const userRef = useMemoFirebase(() => authUser ? doc(firestore, 'users', authUser.uid) : null, [authUser, firestore]);
   const { data: currentUser, isLoading: userLoading } = useDoc(userRef);
   
   // Fetch all family members for tasks and other components that might need them
-  const { data: familyMembers, isLoading: familyMembersLoading } = useCollection(collection(firestore, 'users'));
+  const familyMembersCollection = useMemoFirebase(() => collection(firestore, 'users'), [firestore]);
+  const { data: familyMembers, isLoading: familyMembersLoading } = useCollection(familyMembersCollection);
 
   const pageLoading = authLoading || userLoading || familyMembersLoading;
 

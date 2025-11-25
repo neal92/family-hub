@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useFirestore, useUser as useAuthUser, useDoc } from '@/firebase';
+import { useFirestore, useUser as useAuthUser, useDoc, useMemoFirebase } from '@/firebase';
 import { doc, setDoc } from 'firebase/firestore';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { PageHeader } from '@/components/page-header';
@@ -32,7 +32,7 @@ export default function ProfilePage() {
   const firestore = useFirestore();
   const { toast } = useToast();
   
-  const userRef = authUser ? doc(firestore, 'users', authUser.uid) : null;
+  const userRef = useMemoFirebase(() => authUser ? doc(firestore, 'users', authUser.uid) : null, [authUser, firestore]);
   const { data: userData, isLoading: userDataLoading } = useDoc(userRef);
 
   const [avatarFile, setAvatarFile] = useState<File | null>(null);

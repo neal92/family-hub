@@ -23,7 +23,7 @@ import {
 } from '@/components/ui/sidebar';
 import Link from 'next/link';
 import { BottomBar, BottomBarItem } from '@/components/bottom-bar';
-import { useAuth, useUser as useAuthUser, useDoc } from '@/firebase';
+import { useAuth, useUser as useAuthUser, useDoc, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
 import type { User } from '@/lib/types';
@@ -49,7 +49,7 @@ export function AppSidebar() {
   const { user: authUser } = useAuthUser();
   const firestore = useFirestore();
 
-  const userRef = authUser ? doc(firestore, 'users', authUser.uid) : null;
+  const userRef = useMemoFirebase(() => (authUser ? doc(firestore, 'users', authUser.uid) : null), [authUser, firestore]);
   const { data: userData } = useDoc(userRef);
   const currentUser = userData as User | undefined;
   const isAdmin = currentUser?.role === 'admin';

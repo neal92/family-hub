@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Sparkles, Loader2, Users, ListChecks, PlusCircle } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { useTasks } from '@/contexts/tasks-context';
-import { useFirestore, useCollection } from '@/firebase';
+import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection } from 'firebase/firestore';
 import type { User } from '@/lib/types';
 
@@ -21,7 +21,8 @@ export function ChoreSuggester() {
   const { addTasks } = useTasks();
   
   const firestore = useFirestore();
-  const { data: familyMembers, isLoading: loading } = useCollection(collection(firestore, 'users'));
+  const familyMembersCollection = useMemoFirebase(() => collection(firestore, 'users'), [firestore]);
+  const { data: familyMembers, isLoading: loading } = useCollection(familyMembersCollection);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();

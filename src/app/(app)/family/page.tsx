@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { UserPlus, Loader2 } from 'lucide-react';
-import { useFirestore, useUser as useAuthUser, useCollection, useDoc } from '@/firebase';
+import { useFirestore, useUser as useAuthUser, useCollection, useDoc, useMemoFirebase } from '@/firebase';
 import { collection, doc } from 'firebase/firestore';
 import type { User } from '@/lib/types';
 import { useRouter } from 'next/navigation';
@@ -17,10 +17,11 @@ export default function FamilyPage() {
   const { user: authUser, isUserLoading: authLoading } = useAuthUser();
   const router = useRouter();
 
-  const userRef = authUser ? doc(firestore, 'users', authUser.uid) : null;
+  const userRef = useMemoFirebase(() => (authUser ? doc(firestore, 'users', authUser.uid) : null), [authUser, firestore]);
   const { data: currentUserData, isLoading: currentUserLoading } = useDoc(userRef);
-
-  const { data: familyMembers, isLoading: loading, error } = useCollection(collection(firestore, 'users'));
+  
+  const familyMembersCollection = useMemoFirebase(() => collection(firestore, 'users'), [firestore]);
+  const { data: familyMembers, isLoading: loading, error } = useCollection(familyMembersCollection);
 
   const pageLoading = authLoading || currentUserLoading;
 

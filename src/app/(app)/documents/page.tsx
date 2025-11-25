@@ -10,7 +10,7 @@ import { Upload, Download, Trash2, FileText, Shield, HeartPulse, Banknote, Loade
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
-import { useFirestore, useUser as useAuthUser, useDoc } from '@/firebase';
+import { useFirestore, useUser as useAuthUser, useDoc, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
@@ -34,7 +34,7 @@ export default function DocumentsPage() {
   const { user: authUser, isUserLoading: authLoading } = useAuthUser();
   const router = useRouter();
 
-  const userRef = authUser ? doc(firestore, 'users', authUser.uid) : null;
+  const userRef = useMemoFirebase(() => (authUser ? doc(firestore, 'users', authUser.uid) : null), [authUser, firestore]);
   const { data: currentUserData, isLoading: currentUserLoading } = useDoc(userRef);
   
   const pageLoading = authLoading || currentUserLoading;
