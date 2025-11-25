@@ -19,6 +19,8 @@ export default function CalendarPage() {
   const selectedDate = date || new Date();
   const todaysEvents = events.filter(event => format(event.date, 'yyyy-MM-dd') === format(selectedDate, 'yyyy-MM-dd'));
 
+  const eventDates = events.map(event => event.date);
+
   return (
     <div className="container mx-auto px-4 py-8">
       <PageHeader title="Calendrier familial" description="Coordonnez les événements et les rendez-vous.">
@@ -37,6 +39,10 @@ export default function CalendarPage() {
                 onSelect={setDate}
                 className="rounded-md w-full"
                 locale={fr}
+                modifiers={{ has_event: eventDates }}
+                modifiersClassNames={{
+                  has_event: 'day-has_event'
+                }}
               />
             </CardContent>
           </Card>
