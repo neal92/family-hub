@@ -3,4 +3,3 @@ config();
 
 import '@/ai/flows/suggest-chores.ts';
 import '@/ai/flows/suggest-meal-ideas.ts';
-import '@/ai/flows/suggest-shopping-category.ts';
