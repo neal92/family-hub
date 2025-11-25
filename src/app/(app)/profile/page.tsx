@@ -145,22 +145,21 @@ export default function ProfilePage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            <div className="flex items-center gap-6">
-                <Avatar className="w-24 h-24">
-                    <AvatarImage src={avatarPreview || authUser?.photoURL || ''} alt={authUser?.displayName || ''} />
-                    <AvatarFallback className="text-3xl">{getInitials(watch('name') || authUser?.displayName || '')}</AvatarFallback>
-                </Avatar>
-                <div className="flex-grow space-y-2">
-                    <Label>Avatar</Label>
-                    <Input id="avatarFile" type="file" onChange={handleAvatarChange} accept="image/*" className="hidden" />
-                    <Button type="button" variant="outline" asChild>
-                       <Label htmlFor="avatarFile" className="cursor-pointer">
-                         <Upload className="mr-2 h-4 w-4" />
-                         Changer l'image
-                       </Label>
-                    </Button>
-                     <p className="text-sm text-muted-foreground">Téléversez une nouvelle photo.</p>
-                </div>
+             <div className="flex flex-col items-center gap-4">
+              <Avatar className="w-24 h-24">
+                <AvatarImage src={avatarPreview || authUser?.photoURL || ''} alt={authUser?.displayName || ''} />
+                <AvatarFallback className="text-3xl">{getInitials(watch('name') || authUser?.displayName || '')}</AvatarFallback>
+              </Avatar>
+              <div className="text-center">
+                <Input id="avatarFile" type="file" onChange={handleAvatarChange} accept="image/*" className="hidden" />
+                <Button type="button" variant="outline" asChild>
+                  <Label htmlFor="avatarFile" className="cursor-pointer">
+                    <Upload className="mr-2 h-4 w-4" />
+                    Changer l'image
+                  </Label>
+                </Button>
+                <p className="text-xs text-muted-foreground mt-2">Téléversez une nouvelle photo.</p>
+              </div>
             </div>
 
 
