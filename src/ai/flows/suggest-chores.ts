@@ -43,7 +43,7 @@ const prompt = ai.definePrompt({
   name: 'suggestChoresPrompt',
   input: {schema: SuggestChoresInputSchema},
   output: {schema: SuggestChoresOutputSchema},
-  prompt: `You are an AI assistant that suggests chore assignments for family members.
+  prompt: `You are an AI assistant that suggests chore assignments for family members. All responses must be in French.
 
 Given the following family members and their attributes:
 
