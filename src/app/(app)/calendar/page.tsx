@@ -10,37 +10,37 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useState, useEffect } from 'react';
-import { useFirestore, useCollection } from '@/firebase';
+import { useFirestore, useCollection, useUser as useAuthUser } from '@/firebase';
 import { collection } from 'firebase/firestore';
-import type { User } from '@/lib/types';
-
 
 export default function CalendarPage() {
   const [date, setDate] = useState<Date | undefined>(undefined);
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   
   const firestore = useFirestore();
   const { data: familyMembers, isLoading: loading } = useCollection(collection(firestore, 'users'));
 
   useEffect(() => {
-      setDate(new Date());
+    const today = new Date();
+    setDate(today);
+    setSelectedDate(today);
   }, []);
 
-  useEffect(() => {
-    setSelectedDate(date || new Date());
-  }, [date])
-
+  const handleDateSelect = (selectedDate: Date | undefined) => {
+    setDate(selectedDate);
+    setSelectedDate(selectedDate);
+  }
 
   const getInitials = (name: string) => name ? name.charAt(0).toUpperCase() : '';
 
-  const todaysEvents = events.filter(event => {
+  const todaysEvents = selectedDate ? events.filter(event => {
     try {
       return format(new Date(event.date), 'yyyy-MM-dd') === format(selectedDate, 'yyyy-MM-dd');
     } catch (e) {
       // Invalid date in mock data, ignore
       return false;
     }
-  });
+  }) : [];
 
   const eventDates = events.map(event => new Date(event.date));
 
@@ -59,7 +59,7 @@ export default function CalendarPage() {
               <Calendar
                 mode="single"
                 selected={date}
-                onSelect={setDate}
+                onSelect={handleDateSelect}
                 className="rounded-md w-full"
                 locale={fr}
                 modifiers={{ has_event: eventDates }}
@@ -72,7 +72,10 @@ export default function CalendarPage() {
         </div>
         
         <div className="space-y-6">
-          <h2 className="font-headline text-xl font-semibold">Événements pour {format(selectedDate, 'd MMMM', { locale: fr })}</h2>
+          <h2 className="font-headline text-xl font-semibold">
+            {selectedDate ? `Événements pour ${format(selectedDate, 'd MMMM', { locale: fr })}` : 'Sélectionnez une date'}
+          </h2>
+          
           {loading && <div className="flex justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>}
           
           {!loading && familyMembers && todaysEvents.length > 0 ? (
@@ -101,7 +104,7 @@ export default function CalendarPage() {
               </Card>
             ))
           ) : (
-            !loading && (
+            !loading && selectedDate && (
                 <Card className="flex flex-col items-center justify-center p-8 border-dashed">
                     <CalendarIcon className="w-12 h-12 text-muted-foreground mb-4"/>
                     <p className="text-muted-foreground">Aucun événement prévu pour ce jour.</p>
