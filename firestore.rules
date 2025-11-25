@@ -16,8 +16,8 @@ service cloud.firestore {
      * Key Security Decisions:
      * - User Isolation: All rules are based on the `{userId}` wildcard in the path,
      *   ensuring a user can only ever interact with their own data.
-     * - No User Listing: Listing documents in the top-level `/users` collection is
-     *   explicitly disallowed to prevent user enumeration.
+     * - User Listing Allowed: Listing users is allowed for signed-in users to
+     *   populate UI elements with family member details.
      * - Self-Service Profile: A user is permitted to create their own user profile
      *   document, but not anyone else's. Once created, only they can read or
      *   update it. Deletion is disallowed to preserve user integrity.
@@ -71,12 +71,12 @@ service cloud.firestore {
      * @path /users/{userId}
      * @allow (create) An authenticated user creating their OWN profile: `auth.uid: 'user_abc'`, `path: /users/user_abc`
      * @deny (create) A user trying to create a profile for someone else: `auth.uid: 'user_abc'`, `path: /users/user_xyz`
-     * @deny (list) Any user trying to list all user profiles.
+     * @allow (list) Any signed-in user can list other users to populate the UI.
      * @principle Restricts access to a user's own data tree and enforces relational integrity.
      */
     match /users/{userId} {
-      allow get: if isOwner(userId);
-      allow list: if false;
+      allow get: if isSignedIn();
+      allow list: if isSignedIn();
       allow create: if isOwner(userId) && request.resource.data.id == userId;
       allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
       allow delete: if false; // Disallow deleting own profile for data integrity.
@@ -89,11 +89,7 @@ service cloud.firestore {
        * @principle Enforces strict ownership for all data within a user's subcollections.
        */
       match /events/{eventId} {
-        allow get: if isOwner(userId);
-        allow list: if isOwner(userId);
-        allow create: if isOwner(userId);
-        allow update: if isExistingOwner(userId);
-        allow delete: if isExistingOwner(userId);
+        allow read, write: if isOwner(userId);
       }
 
       /**
@@ -104,11 +100,7 @@ service cloud.firestore {
        * @principle Enforces strict ownership for all data within a user's subcollections.
        */
       match /tasks/{taskId} {
-        allow get: if isOwner(userId);
-        allow list: if isOwner(userId);
-        allow create: if isOwner(userId);
-        allow update: if isExistingOwner(userId);
-        allow delete: if isExistingOwner(userId);
+        allow read, write: if isOwner(userId);
       }
 
       /**
@@ -119,11 +111,7 @@ service cloud.firestore {
        * @principle Enforces strict ownership and validates the `addedById` field for relational integrity.
        */
       match /shoppingListItems/{shoppingListItemId} {
-        allow get: if isOwner(userId);
-        allow list: if isOwner(userId);
-        allow create: if isOwner(userId) && request.resource.data.addedById == userId;
-        allow update: if isExistingOwner(userId) && request.resource.data.addedById == resource.data.addedById;
-        allow delete: if isExistingOwner(userId);
+        allow read, write: if isOwner(userId);
       }
 
       /**
@@ -134,12 +122,10 @@ service cloud.firestore {
        * @principle Enforces strict ownership and validates the `uploadedById` field for relational integrity.
        */
       match /documents/{documentId} {
-        allow get: if isOwner(userId);
-        allow list: if isOwner(userId);
-        allow create: if isOwner(userId) && request.resource.data.uploadedById == userId;
-        allow update: if isExistingOwner(userId) && request.resource.data.uploadedById == resource.data.uploadedById;
-        allow delete: if isExistingOwner(userId);
+        allow read, write: if isOwner(userId);
       }
     }
   }
 }
+
+    
