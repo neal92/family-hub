@@ -1,53 +1,315 @@
 {
   "entities": {
     "UserProfile": {
-      "title": "User Profile",
-      "description": "Represents a user's profile information.",
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "UserProfile",
       "type": "object",
+      "description": "Represents a user profile within the Family Hub application.",
       "properties": {
-        "name": {
+        "id": {
           "type": "string",
-          "description": "The user's full name."
+          "description": "Unique identifier for the user profile.",
+          "format": "uuid"
+        },
+        "firstName": {
+          "type": "string",
+          "description": "The user's first name."
+        },
+        "lastName": {
+          "type": "string",
+          "description": "The user's last name."
         },
         "email": {
           "type": "string",
-          "format": "email",
-          "description": "The user's email address."
+          "description": "The user's email address.",
+          "format": "email"
         },
-        "avatarUrl": {
+        "profilePicture": {
           "type": "string",
-          "format": "uri",
-          "description": "URL of the user's avatar image."
-        },
-        "age": {
-          "type": "number",
-          "description": "The user's age."
-        },
-        "skills": {
-          "type": "string",
-          "description": "A comma-separated list of the user's skills."
-        },
-        "role": {
-            "type": "string",
-            "description": "The user's role.",
-            "enum": ["admin", "member"]
+          "description": "URL to the user's profile picture.",
+          "format": "uri"
         }
       },
-      "required": ["name", "email", "role"]
+      "required": [
+        "id",
+        "firstName",
+        "lastName",
+        "email"
+      ]
+    },
+    "Event": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Event",
+      "type": "object",
+      "description": "Represents a calendar event.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the event.",
+          "format": "uuid"
+        },
+        "title": {
+          "type": "string",
+          "description": "The title of the event."
+        },
+        "description": {
+          "type": "string",
+          "description": "A description of the event."
+        },
+        "startTime": {
+          "type": "string",
+          "description": "The start time of the event.",
+          "format": "date-time"
+        },
+        "endTime": {
+          "type": "string",
+          "description": "The end time of the event.",
+          "format": "date-time"
+        },
+        "location": {
+          "type": "string",
+          "description": "The location of the event."
+        },
+        "attendeeIds": {
+          "type": "array",
+          "description": "References to UserProfiles attending the event. (Relationship: UserProfile N:N Event)",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "startTime",
+        "endTime"
+      ]
+    },
+    "Task": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Task",
+      "type": "object",
+      "description": "Represents a task assigned to a family member.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the task.",
+          "format": "uuid"
+        },
+        "title": {
+          "type": "string",
+          "description": "The title of the task."
+        },
+        "description": {
+          "type": "string",
+          "description": "A description of the task."
+        },
+        "assigneeId": {
+          "type": "string",
+          "description": "Reference to UserProfile assigned to the task. (Relationship: UserProfile 1:N Task)"
+        },
+        "dueDate": {
+          "type": "string",
+          "description": "The due date for the task.",
+          "format": "date-time"
+        },
+        "completed": {
+          "type": "boolean",
+          "description": "Indicates whether the task has been completed."
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "assigneeId",
+        "dueDate",
+        "completed"
+      ]
+    },
+    "ShoppingListItem": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "ShoppingListItem",
+      "type": "object",
+      "description": "Represents an item on the shared shopping list.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the shopping list item.",
+          "format": "uuid"
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the item."
+        },
+        "quantity": {
+          "type": "number",
+          "description": "The quantity of the item needed."
+        },
+        "addedById": {
+          "type": "string",
+          "description": "Reference to UserProfile who added the item. (Relationship: UserProfile 1:N ShoppingListItem)"
+        },
+        "purchased": {
+          "type": "boolean",
+          "description": "Indicates whether the item has been purchased."
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "quantity",
+        "addedById",
+        "purchased"
+      ]
+    },
+    "Document": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Document",
+      "type": "object",
+      "description": "Represents a family document stored within the application.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the document.",
+          "format": "uuid"
+        },
+        "title": {
+          "type": "string",
+          "description": "The title of the document."
+        },
+        "description": {
+          "type": "string",
+          "description": "A description of the document."
+        },
+        "fileUrl": {
+          "type": "string",
+          "description": "URL to the stored document file.",
+          "format": "uri"
+        },
+        "uploadedById": {
+          "type": "string",
+          "description": "Reference to UserProfile who uploaded the document. (Relationship: UserProfile 1:N Document)"
+        },
+        "uploadDate": {
+          "type": "string",
+          "description": "The date and time when the document was uploaded.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "fileUrl",
+        "uploadedById",
+        "uploadDate"
+      ]
     }
   },
   "auth": {
     "providers": [
-      "google.com",
-      "password"
+      "password",
+      "anonymous"
     ]
   },
   "firestore": {
-    "/users/{userId}": {
-      "schema": {
-        "$ref": "#/entities/UserProfile"
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "UserProfile",
+          "schema": {
+            "$ref": "#/backend/entities/UserProfile"
+          },
+          "description": "Stores user profile information.  Path-based ownership ensures only the user can access their profile.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user."
+            }
+          ]
+        }
       },
-      "description": "Stores user profile information, keyed by user ID."
-    }
+      {
+        "path": "/users/{userId}/events/{eventId}",
+        "definition": {
+          "entityName": "Event",
+          "schema": {
+            "$ref": "#/backend/entities/Event"
+          },
+          "description": "Stores events created by the user. Path-based ownership ensures only the user can manage their events.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user."
+            },
+            {
+              "name": "eventId",
+              "description": "The unique identifier for the event."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/tasks/{taskId}",
+        "definition": {
+          "entityName": "Task",
+          "schema": {
+            "$ref": "#/backend/entities/Task"
+          },
+          "description": "Stores tasks created by the user.  Path-based ownership ensures only the user can manage their tasks.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user."
+            },
+            {
+              "name": "taskId",
+              "description": "The unique identifier for the task."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/shoppingListItems/{shoppingListItemId}",
+        "definition": {
+          "entityName": "ShoppingListItem",
+          "schema": {
+            "$ref": "#/backend/entities/ShoppingListItem"
+          },
+          "description": "Stores shopping list items created by the user. Path-based ownership ensures only the user can manage their shopping list items.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user."
+            },
+            {
+              "name": "shoppingListItemId",
+              "description": "The unique identifier for the shopping list item."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/documents/{documentId}",
+        "definition": {
+          "entityName": "Document",
+          "schema": {
+            "$ref": "#/backend/entities/Document"
+          },
+          "description": "Stores documents uploaded by the user. Path-based ownership ensures only the user can manage their documents.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user."
+            },
+            {
+              "name": "documentId",
+              "description": "The unique identifier for the document."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore data structure is designed to support the Family Hub application's features, including event calendars, task management, shopping lists, document storage, and user profiles. It prioritizes authorization independence, clarity, and scalability.  User profiles are stored under `/users/{userId}`. Events, tasks, shopping list items, and documents are stored as subcollections of `/users/{userId}` to establish clear ownership and enable secure data access through path-based rules. This eliminates the need for complex `get()` calls in security rules and supports atomic operations.  Each user's data is isolated, enhancing privacy and security. This structure directly supports the required QAPs. Private data is secured through path-based ownership. The segregation of user data into separate collections simplifies security rules. The membership model is implicitly enforced by the path structure, ensuring that only the owner can access their data."
   }
 }

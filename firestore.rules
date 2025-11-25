@@ -1,23 +1,145 @@
 rules_version = '2';
- 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Les utilisateurs peuvent lire les profils des autres, mais ne modifier que le leur.
-    match /users/{userId} {
-      allow read: if request.auth != null;
-      allow create, update, delete: if request.auth.uid == userId;
+
+    /**
+     * Core Philosophy: This ruleset enforces a strict user-ownership model.
+     * All data is isolated within a user's own data tree, and a user can only
+     * access documents that are located under their own user ID path. This provides
+     * strong privacy and security by default.
+     *
+     * Data Structure: All application data is organized under the top-level
+     * `/users` collection. Each user's data, including their profile, events, tasks,
+     * shopping list items, and documents, is stored in a document or subcollection
+     * under the path `/users/{userId}`.
+     *
+     * Key Security Decisions:
+     * - User Isolation: All rules are based on the `{userId}` wildcard in the path,
+     *   ensuring a user can only ever interact with their own data.
+     * - No User Listing: Listing documents in the top-level `/users` collection is
+     *   explicitly disallowed to prevent user enumeration.
+     * - Self-Service Profile: A user is permitted to create their own user profile
+     *   document, but not anyone else's. Once created, only they can read or
+     *   update it. Deletion is disallowed to preserve user integrity.
+     * - Full Subcollection Control: A user has full create, read, update, and delete
+     *   (CRUD) permissions on the documents within their own subcollections (events,
+     *   tasks, etc.).
+     *
+     * Denormalization for Authorization: The data structure itself is designed for
+     * efficient security rules. By placing all of a user's data under their unique
+     * `/users/{userId}` path, authorization checks become simple and performant
+     * path comparisons, avoiding the need for costly cross-collection `get()` calls.
+     *
+     * Structural Segregation: This model uses collection segregation to enforce
+     * privacy. Each user's data is in its own document tree, completely separate
+     * from other users' data.
+     */
+
+    // -------------------------------------------------------------------------
+    // Helper Functions
+    // -------------------------------------------------------------------------
+
+    /**
+     * Checks if a user is authenticated.
+     */
+    function isSignedIn() {
+      return request.auth != null;
     }
 
-    // Règle générale : les utilisateurs ne peuvent accéder (lire, écrire, supprimer) 
-    // qu'aux documents qui se trouvent dans un chemin qui leur est propre.
-    // Par exemple, /tasks/{userId}/... ou /shopping/{userId}/...
-    match /{collection}/{userId}/{documents=**} {
-      allow read, write, delete: if request.auth != null && request.auth.uid == userId;
+    /**
+     * Checks if the currently authenticated user's UID matches the given userId.
+     * This is the foundation of the user-ownership security model.
+     */
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
     }
-    
-    // Par défaut, refuser toutes les autres lectures et écritures.
-    match /{document=**} {
-      allow read, write: if false;
+
+    /**
+     * Checks if the user is the owner of an existing document.
+     * Used for safe update and delete operations.
+     */
+    function isExistingOwner(userId) {
+      return isOwner(userId) && resource != null;
+    }
+
+    // -------------------------------------------------------------------------
+    // Collection Rules
+    // -------------------------------------------------------------------------
+
+    /**
+     * @description Manages user profile documents.
+     * @path /users/{userId}
+     * @allow (create) An authenticated user creating their OWN profile: `auth.uid: 'user_abc'`, `path: /users/user_abc`
+     * @deny (create) A user trying to create a profile for someone else: `auth.uid: 'user_abc'`, `path: /users/user_xyz`
+     * @deny (list) Any user trying to list all user profiles.
+     * @principle Restricts access to a user's own data tree and enforces relational integrity.
+     */
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow list: if false;
+      allow create: if isOwner(userId) && request.resource.data.id == userId;
+      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
+      allow delete: if false; // Disallow deleting own profile for data integrity.
+
+      /**
+       * @description Manages a user's personal events.
+       * @path /users/{userId}/events/{eventId}
+       * @allow (create, get, list, update, delete) A user managing their own events: `auth.uid: 'user_abc'`, `path: /users/user_abc/events/event_123`
+       * @deny (get) A user trying to access another user's events: `auth.uid: 'user_xyz'`, `path: /users/user_abc/events/event_123`
+       * @principle Enforces strict ownership for all data within a user's subcollections.
+       */
+      match /events/{eventId} {
+        allow get: if isOwner(userId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId);
+        allow update: if isExistingOwner(userId);
+        allow delete: if isExistingOwner(userId);
+      }
+
+      /**
+       * @description Manages a user's personal tasks.
+       * @path /users/{userId}/tasks/{taskId}
+       * @allow (create, get, list, update, delete) A user managing their own tasks: `auth.uid: 'user_abc'`, `path: /users/user_abc/tasks/task_123`
+       * @deny (get) A user trying to access another user's tasks: `auth.uid: 'user_xyz'`, `path: /users/user_abc/tasks/task_123`
+       * @principle Enforces strict ownership for all data within a user's subcollections.
+       */
+      match /tasks/{taskId} {
+        allow get: if isOwner(userId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId);
+        allow update: if isExistingOwner(userId);
+        allow delete: if isExistingOwner(userId);
+      }
+
+      /**
+       * @description Manages a user's shopping list items.
+       * @path /users/{userId}/shoppingListItems/{shoppingListItemId}
+       * @allow (create) A user adding an item to their own list: `auth.uid: 'user_abc'`, `path: /users/user_abc/shoppingListItems/item_123`
+       * @deny (get) A user trying to view another user's shopping list: `auth.uid: 'user_xyz'`, `path: /users/user_abc/shoppingListItems/item_123`
+       * @principle Enforces strict ownership and validates the `addedById` field for relational integrity.
+       */
+      match /shoppingListItems/{shoppingListItemId} {
+        allow get: if isOwner(userId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) && request.resource.data.addedById == userId;
+        allow update: if isExistingOwner(userId) && request.resource.data.addedById == resource.data.addedById;
+        allow delete: if isExistingOwner(userId);
+      }
+
+      /**
+       * @description Manages a user's uploaded documents.
+       * @path /users/{userId}/documents/{documentId}
+       * @allow (create, get, list, update, delete) A user managing their own documents: `auth.uid: 'user_abc'`, `path: /users/user_abc/documents/doc_123`
+       * @deny (get) A user trying to access another user's documents: `auth.uid: 'user_xyz'`, `path: /users/user_abc/documents/doc_123`
+       * @principle Enforces strict ownership and validates the `uploadedById` field for relational integrity.
+       */
+      match /documents/{documentId} {
+        allow get: if isOwner(userId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) && request.resource.data.uploadedById == userId;
+        allow update: if isExistingOwner(userId) && request.resource.data.uploadedById == resource.data.uploadedById;
+        allow delete: if isExistingOwner(userId);
+      }
     }
   }
 }
