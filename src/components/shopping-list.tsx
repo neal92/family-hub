@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from 'react';
 import type { ShoppingItem } from '@/lib/types';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -10,25 +9,12 @@ import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 
 type ShoppingListProps = {
-  initialList: { category: string; items: ShoppingItem[] }[];
+  list: { category: string; items: ShoppingItem[] }[];
+  onPurchase: (itemId: string, purchased: boolean) => void;
+  onDelete: (itemId: string) => void;
 };
 
-export function ShoppingList({ initialList }: ShoppingListProps) {
-  const [list, setList] = useState(initialList);
-
-  const handlePurchase = (itemId: string, purchased: boolean) => {
-    setList(list.map(category => ({
-      ...category,
-      items: category.items.map(item => item.id === itemId ? { ...item, purchased } : item),
-    })));
-  };
-
-  const handleDelete = (itemId: string) => {
-    setList(list.map(category => ({
-      ...category,
-      items: category.items.filter(item => item.id !== itemId),
-    })).filter(category => category.items.length > 0));
-  };
+export function ShoppingList({ list, onPurchase, onDelete }: ShoppingListProps) {
   
   const defaultActive = list.map(l => l.category);
 
@@ -54,7 +40,7 @@ export function ShoppingList({ initialList }: ShoppingListProps) {
                   <Checkbox
                     id={`item-${item.id}`}
                     checked={item.purchased}
-                    onCheckedChange={(checked) => handlePurchase(item.id, !!checked)}
+                    onCheckedChange={(checked) => onPurchase(item.id, !!checked)}
                     className="h-5 w-5"
                   />
                   <label
@@ -66,7 +52,7 @@ export function ShoppingList({ initialList }: ShoppingListProps) {
                   >
                     {item.name}
                   </label>
-                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleDelete(item.id)}>
+                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onDelete(item.id)}>
                     <Trash2 className="h-4 w-4 text-muted-foreground" />
                   </Button>
                 </motion.div>
