@@ -24,28 +24,57 @@ const SuggestMealIdeasInputSchema = z.object({
 });
 export type SuggestMealIdeasInput = z.infer<typeof SuggestMealIdeasInputSchema>;
 
+const MealIdeaSchema = z.object({
+  name: z.string().describe('The name of the meal.'),
+  description: z.string().describe('A short, appealing description of the meal.'),
+  recipe: z.string().describe('A simple recipe or preparation steps for the meal.'),
+});
+
 const SuggestMealIdeasOutputSchema = z.object({
-  mealSuggestions: z
-    .string()
-    .describe('A list of meal suggestions that meet the specified criteria.'),
+  mealSuggestions: z.array(MealIdeaSchema).describe('A list of meal suggestions that meet the specified criteria.'),
 });
 export type SuggestMealIdeasOutput = z.infer<typeof SuggestMealIdeasOutputSchema>;
 
-export async function suggestMealIdeas(input: SuggestMealIdeasInput): Promise<SuggestMealIdeasOutput> {
-  return suggestMealIdeasFlow(input);
+type MealSuggestionWithImage = z.infer<typeof MealIdeaSchema> & { imageUrl?: string };
+
+export async function suggestMealIdeas(input: SuggestMealIdeasInput): Promise<{ mealSuggestions: MealSuggestionWithImage[]}> {
+  const mealIdeas = await suggestMealIdeasFlow(input);
+  
+  if (!mealIdeas.mealSuggestions) {
+    return { mealSuggestions: [] };
+  }
+
+  // Generate an image for each meal suggestion
+  const suggestionsWithImages = await Promise.all(
+    mealIdeas.mealSuggestions.map(async (suggestion) => {
+      try {
+        const { media } = await ai.generate({
+          model: 'googleai/imagen-4.0-fast-generate-001',
+          prompt: `A delicious, professionally photographed image of ${suggestion.name}, ${suggestion.description}`,
+        });
+        return { ...suggestion, imageUrl: media.url };
+      } catch (error) {
+        console.error(`Failed to generate image for ${suggestion.name}:`, error);
+        // Return the suggestion without an image if generation fails
+        return { ...suggestion, imageUrl: undefined };
+      }
+    })
+  );
+
+  return { mealSuggestions: suggestionsWithImages };
 }
 
 const prompt = ai.definePrompt({
   name: 'suggestMealIdeasPrompt',
   input: {schema: SuggestMealIdeasInputSchema},
   output: {schema: SuggestMealIdeasOutputSchema},
-  prompt: `You are a meal planning assistant. Suggest meal ideas based on the following information:
+  prompt: `You are a meal planning assistant. Your goal is to provide three distinct and appealing meal ideas based on the user's input. For each meal, provide a name, a short description, and a simple recipe.
 
 Dietary Restrictions: {{{dietaryRestrictions}}}
 Available Ingredients: {{{availableIngredients}}}
 Past Preferences: {{{pastPreferences}}}
 
-Provide a list of meal suggestions that meet these criteria.`,
+Generate a list of three meal suggestions that meet these criteria.`,
 });
 
 const suggestMealIdeasFlow = ai.defineFlow(

@@ -1,17 +1,26 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { suggestMealIdeas, SuggestMealIdeasOutput } from '@/ai/flows/suggest-meal-ideas';
+import { suggestMealIdeas } from '@/ai/flows/suggest-meal-ideas';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Sparkles, Loader2, UtensilsCrossed } from 'lucide-react';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../ui/accordion';
+import Image from 'next/image';
+
+interface MealSuggestion {
+  name: string;
+  description: string;
+  recipe: string;
+  imageUrl?: string;
+}
 
 export function MealSuggester() {
   const [isPending, startTransition] = useTransition();
-  const [result, setResult] = useState<SuggestMealIdeasOutput | null>(null);
+  const [result, setResult] = useState<MealSuggestion[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -28,7 +37,7 @@ export function MealSuggester() {
     startTransition(async () => {
       try {
         const response = await suggestMealIdeas(input);
-        setResult(response);
+        setResult(response.mealSuggestions);
       } catch (e) {
         setError(e instanceof Error ? e.message : 'An unknown error occurred.');
       }
@@ -90,18 +99,40 @@ export function MealSuggester() {
           <CardTitle className="font-headline">Suggestions</CardTitle>
           <CardDescription>Here are some meal ideas curated just for you.</CardDescription>
         </CardHeader>
-        <CardContent className="flex-1 flex items-center justify-center">
-          {isPending && <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />}
+        <CardContent className="flex-1 flex items-start justify-center">
+          {isPending && <div className="w-full h-full flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>}
           {error && <p className="text-destructive text-sm">{error}</p>}
-          {result ? (
-            <div className="space-y-2 text-sm">
-                {result.mealSuggestions.split('\n').map((idea, index) => (
-                    idea.trim() && <p key={index}>{idea.trim()}</p>
-                ))}
-            </div>
+          {result && result.length > 0 ? (
+            <Accordion type="single" collapsible className="w-full space-y-4">
+              {result.map((suggestion, index) => (
+                 <AccordionItem value={`item-${index}`} key={index} className="border-b-0 rounded-lg bg-muted/50 overflow-hidden">
+                   <AccordionTrigger className="p-4 text-left font-semibold hover:no-underline">
+                      {suggestion.name}
+                   </AccordionTrigger>
+                   <AccordionContent className="px-4 pb-4">
+                      <div className="space-y-4">
+                        {suggestion.imageUrl && (
+                          <div className="relative aspect-video w-full rounded-md overflow-hidden">
+                            <Image src={suggestion.imageUrl} alt={suggestion.name} fill className="object-cover" />
+                          </div>
+                        )}
+                        <p className="text-sm text-muted-foreground">{suggestion.description}</p>
+                        <div>
+                          <h4 className="font-semibold mb-2">Recipe:</h4>
+                          <div className="prose prose-sm dark:prose-invert whitespace-pre-wrap">
+                            {suggestion.recipe.split('\n').map((line, i) => (
+                              <p key={i} className="mb-1">{line}</p>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                   </AccordionContent>
+                 </AccordionItem>
+              ))}
+            </Accordion>
           ) : (
             !isPending && !error && (
-              <div className="text-center text-muted-foreground">
+              <div className="text-center text-muted-foreground m-auto">
                 <UtensilsCrossed className="mx-auto h-12 w-12" />
                 <p className="mt-4">Your meal suggestions will appear here.</p>
               </div>
