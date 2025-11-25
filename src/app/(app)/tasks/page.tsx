@@ -12,17 +12,17 @@ export default function TasksPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <PageHeader title="Family Tasks" description="Assign and track chores and to-dos.">
+      <PageHeader title="Tâches familiales" description="Assignez et suivez les corvées et les choses à faire.">
         <Button>
-          <Plus className="mr-2 h-4 w-4" /> New Task
+          <Plus className="mr-2 h-4 w-4" /> Nouvelle tâche
         </Button>
       </PageHeader>
 
       <Tabs defaultValue="todo" className="w-full">
         <TabsList className="grid w-full grid-cols-3 md:w-[400px]">
-          <TabsTrigger value="todo">To-Do ({todoTasks.length})</TabsTrigger>
-          <TabsTrigger value="completed">Completed ({completedTasks.length})</TabsTrigger>
-          <TabsTrigger value="all">All ({allTasks.length})</TabsTrigger>
+          <TabsTrigger value="todo">À faire ({todoTasks.length})</TabsTrigger>
+          <TabsTrigger value="completed">Terminées ({completedTasks.length})</TabsTrigger>
+          <TabsTrigger value="all">Toutes ({allTasks.length})</TabsTrigger>
         </TabsList>
         <TabsContent value="all" className="mt-6">
           <TasksList initialTasks={allTasks} />

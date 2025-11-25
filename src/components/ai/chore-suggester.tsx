@@ -21,7 +21,7 @@ export function ChoreSuggester() {
     const chores = (formData.get('chores') as string).split('\n').filter(c => c.trim() !== '');
     
     if (chores.length === 0) {
-      setError("Please enter at least one chore.");
+      setError("Veuillez entrer au moins une corvée.");
       return;
     }
 
@@ -37,7 +37,7 @@ export function ChoreSuggester() {
         const response = await suggestChores(input);
         setResult(response);
       } catch (e) {
-        setError(e instanceof Error ? e.message : 'An unknown error occurred.');
+        setError(e instanceof Error ? e.message : 'Une erreur inconnue est survenue.');
       }
     });
   };
@@ -49,12 +49,12 @@ export function ChoreSuggester() {
       <Card>
         <form onSubmit={handleSubmit}>
           <CardHeader>
-            <CardTitle className="font-headline">Chore Assignment Helper</CardTitle>
-            <CardDescription>List the chores, and the AI will suggest fair assignments.</CardDescription>
+            <CardTitle className="font-headline">Aide à l'attribution des tâches</CardTitle>
+            <CardDescription>Énumérez les tâches et l'IA suggérera des attributions équitables.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <Label>Family Members</Label>
+              <Label>Membres de la famille</Label>
               <div className="flex flex-wrap gap-4 mt-2">
                 {allFamilyMembers.map(member => (
                   <div key={member.id} className="flex items-center gap-2 p-2 rounded-md bg-muted">
@@ -68,11 +68,11 @@ export function ChoreSuggester() {
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="chores">Chores to be done</Label>
+              <Label htmlFor="chores">Tâches à effectuer</Label>
               <Textarea
                 id="chores"
                 name="chores"
-                placeholder="- Walk the dog&#10;- Take out the trash&#10;- Wash dishes"
+                placeholder="- Promener le chien&#10;- Sortir les poubelles&#10;- Faire la vaisselle"
                 rows={5}
                 disabled={isPending}
               />
@@ -85,7 +85,7 @@ export function ChoreSuggester() {
               ) : (
                 <Sparkles className="mr-2 h-4 w-4" />
               )}
-              Assign Chores
+              Attribuer les tâches
             </Button>
           </CardFooter>
         </form>
@@ -93,8 +93,8 @@ export function ChoreSuggester() {
       
       <Card className="flex flex-col">
         <CardHeader>
-          <CardTitle className="font-headline">Suggested Assignments</CardTitle>
-          <CardDescription>A balanced chore list based on skills and availability.</CardDescription>
+          <CardTitle className="font-headline">Attributions suggérées</CardTitle>
+          <CardDescription>Une liste de tâches équilibrée en fonction des compétences et de la disponibilité.</CardDescription>
         </CardHeader>
         <CardContent className="flex-1 flex items-center justify-center">
           {isPending && <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />}
@@ -113,7 +113,7 @@ export function ChoreSuggester() {
                     ) : <div className="w-10 h-10 rounded-full bg-muted-foreground/20 flex items-center justify-center"><Users className="h-5 w-5"/></div>}
                     <div className="flex-1">
                       <p className="font-semibold">{assignment.chore}</p>
-                      <p className="text-sm text-muted-foreground">Assigned to <span className="font-medium text-foreground">{assignment.familyMember}</span></p>
+                      <p className="text-sm text-muted-foreground">Assigné à <span className="font-medium text-foreground">{assignment.familyMember}</span></p>
                       <p className="text-xs text-muted-foreground mt-1 italic">"{assignment.reason}"</p>
                     </div>
                   </li>
@@ -124,7 +124,7 @@ export function ChoreSuggester() {
             !isPending && !error && (
               <div className="text-center text-muted-foreground">
                 <ListChecks className="mx-auto h-12 w-12" />
-                <p className="mt-4">Chore assignments will appear here.</p>
+                <p className="mt-4">Les attributions de tâches apparaîtront ici.</p>
               </div>
             )
           )}

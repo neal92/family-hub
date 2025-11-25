@@ -10,7 +10,6 @@ import {
   Users,
   LogOut,
   Settings,
-  MoreHorizontal,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -26,16 +25,16 @@ import Link from 'next/link';
 import { BottomBar, BottomBarItem } from '@/components/bottom-bar';
 
 const mainNavItems = [
-  { href: '/dashboard', icon: Home, label: 'Dashboard' },
-  { href: '/calendar', icon: Calendar, label: 'Calendar' },
-  { href: '/tasks', icon: ListTodo, label: 'Tasks' },
-  { href: '/shopping', icon: ShoppingBasket, label: 'Shopping' },
+  { href: '/dashboard', icon: Home, label: 'Tableau de bord' },
+  { href: '/calendar', icon: Calendar, label: 'Calendrier' },
+  { href: '/tasks', icon: ListTodo, label: 'Tâches' },
+  { href: '/shopping', icon: ShoppingBasket, label: 'Courses' },
 ];
 
 const secondaryNavItems = [
-  { href: '/assistant', icon: Sparkles, label: 'AI Assistant' },
+  { href: '/assistant', icon: Sparkles, label: 'Assistant IA' },
   { href: '/documents', icon: Folder, label: 'Documents' },
-  { href: '/family', icon: Users, label: 'Family' },
+  { href: '/family', icon: Users, label: 'Famille' },
 ]
 
 export function AppSidebar() {
@@ -78,7 +77,7 @@ export function AppSidebar() {
         <SidebarMenu>
           {mainNavItems.map((item) => (
             <SidebarMenuItem key={item.href}>
-              <Link href={item.href} passHref>
+              <Link href={item.href}>
                 <SidebarMenuButton
                   asChild
                   isActive={pathname === item.href}
@@ -96,7 +95,7 @@ export function AppSidebar() {
         <SidebarMenu>
           {secondaryNavItems.map((item) => (
             <SidebarMenuItem key={item.href}>
-              <Link href={item.href} passHref>
+              <Link href={item.href}>
                 <SidebarMenuButton
                   asChild
                   isActive={pathname.startsWith(item.href)}
@@ -115,15 +114,15 @@ export function AppSidebar() {
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton tooltip="Settings">
+            <SidebarMenuButton tooltip="Paramètres">
               <Settings />
-              <span>Settings</span>
+              <span>Paramètres</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton tooltip="Log out">
+            <SidebarMenuButton tooltip="Se déconnecter">
               <LogOut />
-              <span>Log out</span>
+              <span>Se déconnecter</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

@@ -6,6 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Upload, Download, Trash2, FileText, Shield, HeartPulse, Banknote } from 'lucide-react';
 import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 
 const categoryIcons = {
@@ -25,9 +26,9 @@ const categoryColors = {
 export default function DocumentsPage() {
   return (
     <div className="container mx-auto px-4 py-8">
-      <PageHeader title="Document Storage" description="Securely store and access important family documents.">
+      <PageHeader title="Stockage de documents" description="Stockez et accédez en toute sécurité aux documents familiaux importants.">
         <Button>
-          <Upload className="mr-2 h-4 w-4" /> Upload Document
+          <Upload className="mr-2 h-4 w-4" /> Télécharger un document
         </Button>
       </PageHeader>
       
@@ -36,9 +37,9 @@ export default function DocumentsPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[50%]">Name</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Date Added</TableHead>
+                <TableHead className="w-[50%]">Nom</TableHead>
+                <TableHead>Catégorie</TableHead>
+                <TableHead>Date d'ajout</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -52,12 +53,12 @@ export default function DocumentsPage() {
                       <span className="ml-1.5">{doc.category}</span>
                     </Badge>
                   </TableCell>
-                  <TableCell>{format(doc.dateAdded, 'MMM d, yyyy')}</TableCell>
+                  <TableCell>{format(doc.dateAdded, 'd MMM yyyy', { locale: fr })}</TableCell>
                   <TableCell className="text-right space-x-1">
-                    <Button variant="ghost" size="icon" aria-label="Download">
+                    <Button variant="ghost" size="icon" aria-label="Télécharger">
                       <Download className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" aria-label="Delete">
+                    <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" aria-label="Supprimer">
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </TableCell>

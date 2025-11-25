@@ -7,6 +7,7 @@ import { Calendar, ListTodo, ShoppingBasket, Sparkles, ArrowRight } from 'lucide
 import { PageHeader } from '@/components/page-header';
 import Link from 'next/link';
 import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
 
 export default function DashboardPage() {
   const upcomingEvents = events.slice(0, 3);
@@ -17,14 +18,14 @@ export default function DashboardPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <PageHeader title="Welcome, Family!" description="Here's what's happening in your family hub today." />
+      <PageHeader title="Bienvenue, Famille !" description="Voici ce qui se passe dans votre hub familial aujourd'hui." />
       
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         
         {/* Upcoming Events */}
         <Card className="flex flex-col transition-transform hover:scale-[1.02] hover:shadow-lg">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-lg font-medium font-headline">Upcoming Events</CardTitle>
+            <CardTitle className="text-lg font-medium font-headline">Événements à venir</CardTitle>
             <Calendar className="h-5 w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent className="flex-grow">
@@ -32,7 +33,7 @@ export default function DashboardPage() {
               {upcomingEvents.map(event => (
                 <li key={event.id} className="flex items-start gap-4">
                   <div className="flex flex-col items-center justify-center bg-muted text-muted-foreground rounded-lg p-2 h-14 w-14">
-                    <span className="text-sm font-bold">{format(event.date, 'MMM')}</span>
+                    <span className="text-sm font-bold">{format(event.date, 'MMM', { locale: fr })}</span>
                     <span className="text-xl font-bold">{format(event.date, 'd')}</span>
                   </div>
                   <div className="flex-1">
@@ -45,7 +46,7 @@ export default function DashboardPage() {
           </CardContent>
           <div className="p-6 pt-0">
              <Button asChild variant="outline" size="sm" className="w-full">
-              <Link href="/calendar">View Full Calendar <ArrowRight className="ml-2 h-4 w-4" /></Link>
+              <Link href="/calendar">Voir le calendrier complet <ArrowRight className="ml-2 h-4 w-4" /></Link>
             </Button>
           </div>
         </Card>
@@ -53,7 +54,7 @@ export default function DashboardPage() {
         {/* Today's Tasks */}
         <Card className="flex flex-col transition-transform hover:scale-[1.02] hover:shadow-lg">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-lg font-medium font-headline">Pending Tasks</CardTitle>
+            <CardTitle className="text-lg font-medium font-headline">Tâches en attente</CardTitle>
             <ListTodo className="h-5 w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent className="flex-grow">
@@ -77,7 +78,7 @@ export default function DashboardPage() {
           </CardContent>
           <div className="p-6 pt-0">
             <Button asChild variant="outline" size="sm" className="w-full">
-              <Link href="/tasks">Manage All Tasks <ArrowRight className="ml-2 h-4 w-4" /></Link>
+              <Link href="/tasks">Gérer toutes les tâches <ArrowRight className="ml-2 h-4 w-4" /></Link>
             </Button>
           </div>
         </Card>
@@ -86,27 +87,27 @@ export default function DashboardPage() {
         <div className="space-y-6">
           <Card className="transition-transform hover:scale-[1.02] hover:shadow-lg">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-lg font-medium font-headline">Shopping List</CardTitle>
+              <CardTitle className="text-lg font-medium font-headline">Liste de courses</CardTitle>
               <ShoppingBasket className="h-5 w-5 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-bold">{shoppingItemCount} items</p>
-              <p className="text-xs text-muted-foreground">currently on the list</p>
+              <p className="text-2xl font-bold">{shoppingItemCount} articles</p>
+              <p className="text-xs text-muted-foreground">actuellement sur la liste</p>
                <Button asChild variant="outline" size="sm" className="mt-4 w-full">
-                <Link href="/shopping">View List <ArrowRight className="ml-2 h-4 w-4" /></Link>
+                <Link href="/shopping">Voir la liste <ArrowRight className="ml-2 h-4 w-4" /></Link>
               </Button>
             </CardContent>
           </Card>
           
           <Card className="bg-gradient-to-br from-primary/80 to-accent/80 text-primary-foreground transition-transform hover:scale-[1.02] hover:shadow-lg">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-lg font-medium font-headline">AI Assistant</CardTitle>
+              <CardTitle className="text-lg font-medium font-headline">Assistant IA</CardTitle>
               <Sparkles className="h-5 w-5 text-primary-foreground" />
             </CardHeader>
             <CardContent>
-              <p className="text-sm">Get help with meal ideas, chore assignments, and more.</p>
+              <p className="text-sm">Obtenez de l'aide pour les idées de repas, l'attribution des tâches, et plus encore.</p>
               <Button asChild variant="secondary" size="sm" className="mt-4 w-full text-accent-foreground bg-white/20 hover:bg-white/30">
-                <Link href="/assistant">Ask AI <ArrowRight className="ml-2 h-4 w-4" /></Link>
+                <Link href="/assistant">Demander à l'IA <ArrowRight className="ml-2 h-4 w-4" /></Link>
               </Button>
             </CardContent>
           </Card>

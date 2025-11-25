@@ -11,9 +11,9 @@ export default function FamilyPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <PageHeader title="Our Family" description="Manage profiles for everyone in the family.">
+      <PageHeader title="Notre Famille" description="Gérez les profils de chacun dans la famille.">
         <Button>
-          <UserPlus className="mr-2 h-4 w-4" /> Add Member
+          <UserPlus className="mr-2 h-4 w-4" /> Ajouter un membre
         </Button>
       </PageHeader>
       
@@ -28,7 +28,7 @@ export default function FamilyPage() {
                 </AvatarFallback>
               </Avatar>
               <h3 className="text-xl font-bold font-headline">{member.name}</h3>
-              <p className="text-muted-foreground text-sm mb-4">{member.age} years old</p>
+              <p className="text-muted-foreground text-sm mb-4">{member.age} ans</p>
               <div className="flex flex-wrap gap-2 justify-center">
                 {member.skills.split(', ').map(skill => (
                   <Badge key={skill} variant="secondary">{skill}</Badge>

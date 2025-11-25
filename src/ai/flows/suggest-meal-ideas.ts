@@ -14,20 +14,20 @@ import {z} from 'genkit';
 const SuggestMealIdeasInputSchema = z.object({
   dietaryRestrictions: z
     .string()
-    .describe("A comma separated list of dietary restrictions for the family (e.g., 'vegetarian, gluten-free, nut allergy')."),
+    .describe("A comma separated list of dietary restrictions for the family (e.g., 'vegetarian, gluten-free, nut allergy'). Can be empty if specified in availableIngredients."),
   availableIngredients: z
     .string()
-    .describe('A comma separated list of ingredients currently available.'),
+    .describe('A comma separated list of ingredients currently available, can also contain preferences and restrictions.'),
   pastPreferences: z
     .string()
-    .describe('A summary of the family’s past meal preferences.'),
+    .describe('A summary of the family’s past meal preferences. Can be empty if specified in availableIngredients.'),
 });
 export type SuggestMealIdeasInput = z.infer<typeof SuggestMealIdeasInputSchema>;
 
 const MealIdeaSchema = z.object({
   name: z.string().describe('The name of the meal.'),
   description: z.string().describe('A short, appealing description of the meal.'),
-  recipe: z.string().describe('A complete, step-by-step recipe, including ingredients and instructions. Use markdown for formatting.'),
+  recipe: z.string().describe('A complete, step-by-step recipe, including ingredients and instructions. Use markdown for formatting. Start with a list of ingredients, then provide numbered steps.'),
 });
 
 const SuggestMealIdeasOutputSchema = z.object({
@@ -68,13 +68,10 @@ const prompt = ai.definePrompt({
   name: 'suggestMealIdeasPrompt',
   input: {schema: SuggestMealIdeasInputSchema},
   output: {schema: SuggestMealIdeasOutputSchema},
-  prompt: `You are a meal planning assistant. Your goal is to provide three distinct and appealing meal ideas based on the user's input. For each meal, provide a name, a short description, and a complete, step-by-step recipe formatted with Markdown.
+  prompt: `You are a meal planning assistant. Your goal is to provide three distinct and appealing meal ideas based on the user's input. For each meal, provide a name, a short description, and a complete, step-by-step recipe formatted with Markdown. The recipe must start with a list of ingredients, followed by numbered steps for the instructions. All responses must be in French.
 
-Dietary Restrictions: {{{dietaryRestrictions}}}
-Available Ingredients: {{{availableIngredients}}}
-Past Preferences: {{{pastPreferences}}}
-
-Generate a list of three meal suggestions that meet these criteria.`,
+User's prompt (contains ingredients, preferences, and/or restrictions): {{{availableIngredients}}}
+`,
 });
 
 const suggestMealIdeasFlow = ai.defineFlow(

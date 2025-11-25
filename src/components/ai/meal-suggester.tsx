@@ -4,7 +4,6 @@ import { useState, useTransition } from 'react';
 import { suggestMealIdeas } from '@/ai/flows/suggest-meal-ideas';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Sparkles, Loader2, UtensilsCrossed, BookOpen } from 'lucide-react';
@@ -27,10 +26,12 @@ export function MealSuggester() {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
+    const prompt = formData.get('prompt') as string;
+
     const input = {
-      dietaryRestrictions: formData.get('dietaryRestrictions') as string,
-      availableIngredients: formData.get('availableIngredients') as string,
-      pastPreferences: formData.get('pastPreferences') as string,
+      dietaryRestrictions: '',
+      availableIngredients: prompt,
+      pastPreferences: '',
     };
 
     setResult(null);
@@ -40,7 +41,7 @@ export function MealSuggester() {
         const response = await suggestMealIdeas(input);
         setResult(response.mealSuggestions);
       } catch (e) {
-        setError(e instanceof Error ? e.message : 'An unknown error occurred.');
+        setError(e instanceof Error ? e.message : 'Une erreur inconnue est survenue.');
       }
     });
   };
@@ -51,35 +52,18 @@ export function MealSuggester() {
         <Card>
           <form onSubmit={handleSubmit}>
             <CardHeader>
-              <CardTitle className="font-headline">Meal Idea Generator</CardTitle>
-              <CardDescription>Tell the AI your preferences and what you have on hand.</CardDescription>
+              <CardTitle className="font-headline">Générateur d'idées de repas</CardTitle>
+              <CardDescription>Indiquez à l'IA vos préférences, les ingrédients disponibles et vos plats favoris.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="dietaryRestrictions">Dietary Restrictions</Label>
-                <Input
-                  id="dietaryRestrictions"
-                  name="dietaryRestrictions"
-                  placeholder="e.g., vegetarian, gluten-free"
-                  disabled={isPending}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="availableIngredients">Available Ingredients</Label>
-                <Input
-                  id="availableIngredients"
-                  name="availableIngredients"
-                  placeholder="e.g., chicken, rice, tomatoes, spinach"
-                  disabled={isPending}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="pastPreferences">Family's Favorite Meals</Label>
+                <Label htmlFor="prompt">Vos préférences et ingrédients</Label>
                 <Textarea
-                  id="pastPreferences"
-                  name="pastPreferences"
-                  placeholder="e.g., loves Italian, not spicy, enjoys tacos"
+                  id="prompt"
+                  name="prompt"
+                  placeholder="Exemple : J'ai du poulet, du riz et des tomates. Nous sommes végétariens et aimons la cuisine italienne. Pas de plats épicés."
                   disabled={isPending}
+                  rows={5}
                 />
               </div>
             </CardContent>
@@ -90,7 +74,7 @@ export function MealSuggester() {
                 ) : (
                   <Sparkles className="mr-2 h-4 w-4" />
                 )}
-                Suggest Meals
+                Suggérer des repas
               </Button>
             </CardFooter>
           </form>
@@ -99,7 +83,7 @@ export function MealSuggester() {
         <div className="flex flex-col gap-4">
           <CardHeader className="p-0">
               <CardTitle className="font-headline">Suggestions</CardTitle>
-              <CardDescription>Here are some meal ideas curated just for you.</CardDescription>
+              <CardDescription>Voici quelques idées de repas spécialement pour vous.</CardDescription>
           </CardHeader>
 
           {isPending && <div className="w-full h-64 flex items-center justify-center bg-card rounded-lg"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>}
@@ -121,7 +105,7 @@ export function MealSuggester() {
                    <CardFooter>
                       <Button variant="outline" onClick={() => setSelectedRecipe(suggestion)}>
                         <BookOpen className="mr-2 h-4 w-4"/>
-                        View Recipe
+                        Voir la recette
                       </Button>
                    </CardFooter>
                  </Card>
@@ -132,7 +116,7 @@ export function MealSuggester() {
           {!isPending && !error && (!result || result.length === 0) && (
             <Card className="h-64 flex flex-col items-center justify-center text-center text-muted-foreground p-8">
               <UtensilsCrossed className="mx-auto h-12 w-12" />
-              <p className="mt-4">Your meal suggestions will appear here.</p>
+              <p className="mt-4">Vos suggestions de repas apparaîtront ici.</p>
             </Card>
           )}
         </div>
@@ -150,6 +134,7 @@ export function MealSuggester() {
             </div>
           )}
           <div className="prose prose-sm md:prose-base dark:prose-invert max-w-none whitespace-pre-wrap">
+            <h3 className="font-headline font-bold mt-4 mb-2">Recette</h3>
             {selectedRecipe?.recipe.split('\n').map((line, i) => (
               <p key={i}>{line}</p>
             ))}

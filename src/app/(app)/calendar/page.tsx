@@ -6,6 +6,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
 
 export default function CalendarPage() {
   const getInitials = (name: string) => name.charAt(0).toUpperCase();
@@ -16,9 +17,9 @@ export default function CalendarPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <PageHeader title="Family Calendar" description="Coordinate events and appointments.">
+      <PageHeader title="Calendrier familial" description="Coordonnez les événements et les rendez-vous.">
         <Button>
-          <Plus className="mr-2 h-4 w-4" /> New Event
+          <Plus className="mr-2 h-4 w-4" /> Nouvel événement
         </Button>
       </PageHeader>
       
@@ -30,13 +31,14 @@ export default function CalendarPage() {
                 mode="single"
                 selected={today}
                 className="rounded-md w-full"
+                locale={fr}
               />
             </CardContent>
           </Card>
         </div>
         
         <div className="space-y-6">
-          <h2 className="font-headline text-xl font-semibold">Events for {format(today, 'MMMM d')}</h2>
+          <h2 className="font-headline text-xl font-semibold">Événements pour {format(today, 'd MMMM', { locale: fr })}</h2>
           {todaysEvents.length > 0 ? (
             todaysEvents.map(event => (
               <Card key={event.id} className="transition-all hover:shadow-lg">
@@ -46,7 +48,7 @@ export default function CalendarPage() {
                 <CardContent>
                   <p className="text-sm text-muted-foreground mb-4">{event.description}</p>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Attendees:</span>
+                    <span className="text-sm font-medium">Participants:</span>
                     <div className="flex -space-x-2">
                       {event.attendees.map(userId => {
                         const member = familyMembers.find(m => m.id === userId);
@@ -65,7 +67,7 @@ export default function CalendarPage() {
           ) : (
             <Card className="flex flex-col items-center justify-center p-8 border-dashed">
                 <CalendarIcon className="w-12 h-12 text-muted-foreground mb-4"/>
-                <p className="text-muted-foreground">No events scheduled for today.</p>
+                <p className="text-muted-foreground">Aucun événement prévu pour aujourd'hui.</p>
             </Card>
           )}
         </div>

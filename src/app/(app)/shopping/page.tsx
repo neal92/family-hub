@@ -8,12 +8,12 @@ import { ShoppingList } from '@/components/shopping-list';
 export default function ShoppingPage() {
   return (
     <div className="container mx-auto px-4 py-8">
-      <PageHeader title="Shopping List" description="A shared list for all your family's needs. Updated in real-time." />
+      <PageHeader title="Liste de courses" description="Une liste partagée pour tous les besoins de votre famille. Mise à jour en temps réel." />
       
       <div className="mb-6 flex gap-2">
-        <Input placeholder="Add a new item (e.g., 'Eggs')" className="flex-grow"/>
+        <Input placeholder="Ajouter un nouvel article (ex: 'Oeufs')" className="flex-grow"/>
         <Button>
-          <Plus className="mr-2 h-4 w-4" /> Add Item
+          <Plus className="mr-2 h-4 w-4" /> Ajouter un article
         </Button>
       </div>
 

@@ -7,6 +7,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent } from '@/components/ui/card';
 import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -58,7 +59,7 @@ export function TasksList({ initialTasks }: TasksListProps) {
                       {task.title}
                     </label>
                     <p className="text-sm text-muted-foreground">
-                      Due: {format(task.dueDate, 'MMM d, yyyy')}
+                      Échéance: {format(task.dueDate, 'd MMM yyyy', { locale: fr })}
                     </p>
                   </div>
                   {member && (
