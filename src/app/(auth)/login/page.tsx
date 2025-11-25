@@ -59,7 +59,7 @@ export default function LoginPage() {
         description = "La méthode de connexion Google n'est pas activée dans la console Firebase. Veuillez l'activer pour continuer.";
         break;
       case 'auth/weak-password':
-        description = "Le mot de passe est trop faible. Il doit contenir au moins 6 caractères, une majuscule et un caractère spécial.";
+        description = "Le mot de passe est trop faible. Il doit contenir au moins 6 caractères.";
         break;
       case 'auth/email-already-in-use':
         description = "Cette adresse e-mail est déjà utilisée par un autre compte.";
@@ -83,6 +83,7 @@ export default function LoginPage() {
     if (!firestore) return;
     const userRef = doc(firestore, 'users', user.uid);
     const profileData = {
+      id: user.uid,
       name: user.displayName || additionalData.name || 'Nouveau membre',
       email: user.email,
       avatarUrl: user.photoURL || `https://i.pravatar.cc/150?u=${user.uid}`,
@@ -92,15 +93,15 @@ export default function LoginPage() {
     };
     
     try {
-        await setDoc(userRef, profileData, { merge: true });
-    } catch (serverError) {
+        await setDoc(userRef, profileData);
+    } catch (serverError: any) {
         const permissionError = new FirestorePermissionError({
             path: userRef.path,
             operation: 'create',
             requestResourceData: profileData,
         });
         errorEmitter.emit('permission-error', permissionError);
-        // Also re-throw the original error to be caught by the calling function
+        // Re-throw to allow the caller to handle it if needed
         throw serverError;
     }
   };
@@ -119,25 +120,31 @@ export default function LoginPage() {
     }
   };
 
-  const handleEmailSignUp = async (e: React.FormEvent) => {
+  const handleEmailSignUp = (e: React.FormEvent) => {
     e.preventDefault();
     if (!auth || !firestore) return;
+    
     setIsLoading(true);
-    try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      await updateProfile(userCredential.user, { displayName: name });
-      await createUserProfile(userCredential.user, { name, age });
-      
-      toast({
-        title: 'Compte créé !',
-        description: 'Vous pouvez maintenant vous connecter.',
+    
+    // Non-blocking call
+    createUserWithEmailAndPassword(auth, email, password)
+      .then(async (userCredential) => {
+        await updateProfile(userCredential.user, { displayName: name });
+        await createUserProfile(userCredential.user, { name, age });
+        
+        toast({
+          title: 'Compte créé !',
+          description: 'Bienvenue. Vous allez être redirigé.',
+        });
+        // The onAuthStateChanged listener will handle the redirect
+      })
+      .catch((error) => {
+        handleAuthError(error, 'inscription');
+        setIsLoading(false); // Only set loading to false on error
       });
-      handleAuthSuccess();
-    } catch (error) {
-      handleAuthError(error, 'inscription');
-    } finally {
-      setIsLoading(false);
-    }
+      
+    // Redirect immediately, auth state change will be handled by the listener
+    handleAuthSuccess();
   };
 
   const handleGoogleSignIn = async () => {
@@ -146,7 +153,10 @@ export default function LoginPage() {
     try {
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
-      await createUserProfile(result.user);
+      // Check if user is new to create profile
+      if (result.user.metadata.creationTime === result.user.metadata.lastSignInTime) {
+        await createUserProfile(result.user);
+      }
       handleAuthSuccess();
     } catch (error) {
       handleAuthError(error, 'connexion');
