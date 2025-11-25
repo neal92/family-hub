@@ -52,7 +52,7 @@ export default function LoginPage() {
 
   const handleAuthError = (error: any, action: 'connexion' | 'inscription') => {
     console.error(error);
-    let description = error.message || `Une erreur est survenue lors de la tentative de ${action}.`;
+    let description = `Une erreur est survenue lors de la tentative de ${action}.`;
     
     switch (error.code) {
       case 'auth/configuration-not-found':
@@ -64,6 +64,12 @@ export default function LoginPage() {
       case 'auth/email-already-in-use':
         description = "Cette adresse e-mail est déjà utilisée par un autre compte.";
         break;
+      case 'auth/invalid-credential':
+        description = "L'adresse e-mail ou le mot de passe est incorrect. Veuillez réessayer.";
+        break;
+      default:
+        description = error.message || description;
+        break;
     }
 
     toast({
@@ -74,13 +80,14 @@ export default function LoginPage() {
   };
 
   const createUserProfile = (user: import('firebase/auth').User, additionalData: Record<string, any> = {}) => {
+    if (!firestore) return;
     const userRef = doc(firestore, 'users', user.uid);
     const profileData = {
       name: user.displayName || additionalData.name || 'Nouveau membre',
       email: user.email,
       avatarUrl: user.photoURL || `https://i.pravatar.cc/150?u=${user.uid}`,
       age: additionalData.age ? parseInt(additionalData.age, 10) : null,
-      skills: '',
+      skills: additionalData.skills || '',
     };
     
     setDoc(userRef, profileData, { merge: true }).catch(async (serverError) => {
