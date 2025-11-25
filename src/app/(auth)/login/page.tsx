@@ -10,7 +10,7 @@ import {
 } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
 import { useAuth, useFirestore } from '@/firebase';
-import { Home, Mail, KeyRound, User, Cake, Wrench } from 'lucide-react';
+import { Home, Mail, KeyRound, User, Cake } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -42,7 +42,6 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [age, setAge] = useState('');
-  const [skills, setSkills] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const redirectTo = searchParams.get('redirect') || '/dashboard';
@@ -60,7 +59,7 @@ export default function LoginPage() {
         description = "La méthode de connexion Google n'est pas activée dans la console Firebase. Veuillez l'activer pour continuer.";
         break;
       case 'auth/weak-password':
-        description = "Le mot de passe est trop faible. Il doit contenir au moins 6 caractères.";
+        description = "Le mot de passe est trop faible. Il doit contenir au moins 6 caractères, une majuscule et un caractère spécial.";
         break;
       case 'auth/email-already-in-use':
         description = "Cette adresse e-mail est déjà utilisée par un autre compte.";
@@ -81,7 +80,7 @@ export default function LoginPage() {
       email: user.email,
       avatarUrl: user.photoURL || `https://i.pravatar.cc/150?u=${user.uid}`,
       age: additionalData.age ? parseInt(additionalData.age, 10) : null,
-      skills: additionalData.skills || '',
+      skills: '',
     };
     
     setDoc(userRef, profileData, { merge: true }).catch(async (serverError) => {
@@ -115,7 +114,7 @@ export default function LoginPage() {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       await updateProfile(userCredential.user, { displayName: name });
-      createUserProfile(userCredential.user, { name, age, skills });
+      createUserProfile(userCredential.user, { name, age });
       
       toast({
         title: 'Compte créé !',
@@ -215,11 +214,6 @@ export default function LoginPage() {
                   <Input id="age-signup" type="number" placeholder="Ex: 42" value={age} onChange={(e) => setAge(e.target.value)} required disabled={isLoading} className="pl-10"/>
                 </div>
                 <div className="relative space-y-2">
-                  <Label htmlFor="skills-signup">Compétences</Label>
-                  <Wrench className="absolute left-3 top-9 h-4 w-4 text-muted-foreground" />
-                  <Input id="skills-signup" placeholder="Ex: Cuisine, Bricolage" value={skills} onChange={(e) => setSkills(e.target.value)} required disabled={isLoading} className="pl-10"/>
-                </div>
-                <div className="relative space-y-2">
                   <Label htmlFor="password-signup">Mot de passe</Label>
                   <KeyRound className="absolute left-3 top-9 h-4 w-4 text-muted-foreground" />
                   <Input id="password-signup" type="password" placeholder="********" value={password} onChange={(e) => setPassword(e.target.value)} required disabled={isLoading} className="pl-10"/>
@@ -237,3 +231,5 @@ export default function LoginPage() {
     </div>
   );
 }
+
+    
