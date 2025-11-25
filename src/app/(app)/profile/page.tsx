@@ -77,51 +77,55 @@ export default function ProfilePage() {
 
     setIsUploading(true);
 
-    let newAvatarUrl = currentAvatarUrl;
+    try {
+      let newAvatarUrl = currentAvatarUrl;
 
-    if (avatarFile) {
-        const storage = getStorage();
-        const storageRef = ref(storage, `avatars/${authUser.uid}/${avatarFile.name}`);
-        try {
-            const snapshot = await uploadBytes(storageRef, avatarFile);
-            newAvatarUrl = await getDownloadURL(snapshot.ref);
-        } catch (error) {
-            console.error("Upload failed", error);
-            toast({
-                variant: "destructive",
-                title: "Échec du téléversement",
-                description: "Impossible de téléverser votre nouvel avatar.",
-            });
-            setIsUploading(false);
-            return;
-        }
-    }
+      if (avatarFile) {
+          const storage = getStorage();
+          const storageRef = ref(storage, `avatars/${authUser.uid}/${avatarFile.name}`);
+          const snapshot = await uploadBytes(storageRef, avatarFile);
+          newAvatarUrl = await getDownloadURL(snapshot.ref);
+      }
 
-    const profileData = {
-      name: data.name,
-      email: authUser.email,
-      age: data.age ? Number(data.age) : null,
-      skills: data.skills || '',
-      avatarUrl: newAvatarUrl || `https://i.pravatar.cc/150?u=${authUser.uid}`,
-      role: userData.role || 'member', // Preserve existing role
-    };
+      const profileData = {
+        name: data.name,
+        email: authUser.email,
+        age: data.age ? Number(data.age) : null,
+        skills: data.skills || '',
+        avatarUrl: newAvatarUrl || `https://i.pravatar.cc/150?u=${authUser.uid}`,
+        role: userData.role || 'member', // Preserve existing role
+      };
 
-    setDoc(userRef, profileData).catch(async (serverError) => {
-        const permissionError = new FirestorePermissionError({
-          path: userRef.path,
-          operation: 'update',
-          requestResourceData: profileData,
-        });
-        errorEmitter.emit('permission-error', permissionError);
+      await setDoc(userRef, profileData);
+      
+      toast({
+        title: 'Profil mis à jour !',
+        description: 'Vos informations ont été sauvegardées avec succès.',
       });
       
-    setIsUploading(false);
-    setAvatarFile(null);
+      setAvatarFile(null);
 
-    toast({
-      title: 'Profil mis à jour !',
-      description: 'Vos informations ont été sauvegardées avec succès.',
-    });
+    } catch (error: any) {
+        console.error("Error updating profile:", error);
+        
+        // Create and emit a contextual error for permission issues
+        if (error.code === 'permission-denied' && userRef) {
+            const permissionError = new FirestorePermissionError({
+              path: userRef.path,
+              operation: 'update',
+              requestResourceData: data,
+            });
+            errorEmitter.emit('permission-error', permissionError);
+        }
+
+        toast({
+            variant: "destructive",
+            title: "Échec de la mise à jour",
+            description: error.message || "Impossible de sauvegarder vos informations. Veuillez vérifier vos permissions.",
+        });
+    } finally {
+      setIsUploading(false);
+    }
   };
   
   const isLoading = authLoading || userDataLoading;
