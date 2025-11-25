@@ -79,7 +79,7 @@ export default function LoginPage() {
     });
   };
 
-  const createUserProfile = (user: import('firebase/auth').User, additionalData: Record<string, any> = {}) => {
+  const createUserProfile = async (user: import('firebase/auth').User, additionalData: Record<string, any> = {}) => {
     if (!firestore) return;
     const userRef = doc(firestore, 'users', user.uid);
     const profileData = {
@@ -91,14 +91,18 @@ export default function LoginPage() {
       role: 'member',
     };
     
-    setDoc(userRef, profileData, { merge: true }).catch(async (serverError) => {
-      const permissionError = new FirestorePermissionError({
-        path: userRef.path,
-        operation: 'create',
-        requestResourceData: profileData,
-      });
-      errorEmitter.emit('permission-error', permissionError);
-    });
+    try {
+        await setDoc(userRef, profileData, { merge: true });
+    } catch (serverError) {
+        const permissionError = new FirestorePermissionError({
+            path: userRef.path,
+            operation: 'create',
+            requestResourceData: profileData,
+        });
+        errorEmitter.emit('permission-error', permissionError);
+        // Also re-throw the original error to be caught by the calling function
+        throw serverError;
+    }
   };
 
   const handleEmailSignIn = async (e: React.FormEvent) => {
@@ -122,7 +126,7 @@ export default function LoginPage() {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       await updateProfile(userCredential.user, { displayName: name });
-      createUserProfile(userCredential.user, { name, age });
+      await createUserProfile(userCredential.user, { name, age });
       
       toast({
         title: 'Compte créé !',
@@ -142,7 +146,7 @@ export default function LoginPage() {
     try {
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
-      createUserProfile(result.user);
+      await createUserProfile(result.user);
       handleAuthSuccess();
     } catch (error) {
       handleAuthError(error, 'connexion');
@@ -239,5 +243,3 @@ export default function LoginPage() {
     </div>
   );
 }
-
-    
