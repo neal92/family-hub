@@ -8,7 +8,7 @@ import {
   createUserWithEmailAndPassword,
 } from 'firebase/auth';
 import { useAuth } from '@/firebase';
-import { Home, Mail, KeyRound } from 'lucide-react';
+import { Home, Mail, KeyRound, User, Cake, Wrench } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -35,6 +35,9 @@ export default function LoginPage() {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
+  const [age, setAge] = useState('');
+  const [skills, setSkills] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const redirectTo = searchParams.get('redirect') || '/dashboard';
@@ -45,10 +48,14 @@ export default function LoginPage() {
 
   const handleAuthError = (error: any, action: 'connexion' | 'inscription') => {
     console.error(error);
+    let description = error.message || `Une erreur est survenue lors de la tentative de ${action}.`;
+    if (error.code === 'auth/configuration-not-found') {
+      description = "La méthode de connexion Google n'est pas activée dans la console Firebase. Veuillez l'activer pour continuer.";
+    }
     toast({
       variant: 'destructive',
       title: `Erreur de ${action}`,
-      description: error.message || `Une erreur est survenue lors de la tentative de ${action}.`,
+      description: description,
     });
   };
 
@@ -71,7 +78,15 @@ export default function LoginPage() {
     if (!auth) return;
     setIsLoading(true);
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      // Ici, vous enregistreriez les informations supplémentaires (name, age, skills) dans votre base de données (ex: Firestore)
+      // avec l'UID de l'utilisateur : userCredential.user.uid
+      console.log('User created:', userCredential.user.uid, { name, age, skills });
+      toast({
+        title: 'Compte créé !',
+        description: 'Vous pouvez maintenant vous connecter.',
+      });
+      // Pour cet exemple, nous redirigeons simplement après l'inscription
       handleAuthSuccess();
     } catch (error) {
       handleAuthError(error, 'inscription');
@@ -117,13 +132,15 @@ export default function LoginPage() {
                 <CardDescription>Connectez-vous pour accéder à votre espace.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="space-y-2">
+                <div className="relative space-y-2">
                   <Label htmlFor="email-signin">Email</Label>
-                  <Input id="email-signin" type="email" placeholder="votre@email.com" value={email} onChange={(e) => setEmail(e.target.value)} required disabled={isLoading}/>
+                  <Mail className="absolute left-3 top-9 h-4 w-4 text-muted-foreground" />
+                  <Input id="email-signin" type="email" placeholder="votre@email.com" value={email} onChange={(e) => setEmail(e.target.value)} required disabled={isLoading} className="pl-10"/>
                 </div>
-                <div className="space-y-2">
+                <div className="relative space-y-2">
                   <Label htmlFor="password-signin">Mot de passe</Label>
-                  <Input id="password-signin" type="password" placeholder="********" value={password} onChange={(e) => setPassword(e.target.value)} required disabled={isLoading}/>
+                  <KeyRound className="absolute left-3 top-9 h-4 w-4 text-muted-foreground" />
+                  <Input id="password-signin" type="password" placeholder="********" value={password} onChange={(e) => setPassword(e.target.value)} required disabled={isLoading} className="pl-10"/>
                 </div>
               </CardContent>
               <CardFooter className="flex-col gap-4">
@@ -147,23 +164,35 @@ export default function LoginPage() {
                 <CardDescription>Rejoignez votre hub familial en quelques secondes.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email-signup">Email</Label>
-                  <Input id="email-signup" type="email" placeholder="votre@email.com" value={email} onChange={(e) => setEmail(e.target.value)} required disabled={isLoading}/>
+                 <div className="relative space-y-2">
+                  <Label htmlFor="name-signup">Prénom</Label>
+                  <User className="absolute left-3 top-9 h-4 w-4 text-muted-foreground" />
+                  <Input id="name-signup" placeholder="Ex: Sarah" value={name} onChange={(e) => setName(e.target.value)} required disabled={isLoading} className="pl-10"/>
                 </div>
-                <div className="space-y-2">
+                <div className="relative space-y-2">
+                  <Label htmlFor="email-signup">Email</Label>
+                  <Mail className="absolute left-3 top-9 h-4 w-4 text-muted-foreground" />
+                  <Input id="email-signup" type="email" placeholder="votre@email.com" value={email} onChange={(e) => setEmail(e.target.value)} required disabled={isLoading} className="pl-10"/>
+                </div>
+                 <div className="relative space-y-2">
+                  <Label htmlFor="age-signup">Âge</Label>
+                  <Cake className="absolute left-3 top-9 h-4 w-4 text-muted-foreground" />
+                  <Input id="age-signup" type="number" placeholder="Ex: 42" value={age} onChange={(e) => setAge(e.target.value)} required disabled={isLoading} className="pl-10"/>
+                </div>
+                <div className="relative space-y-2">
+                  <Label htmlFor="skills-signup">Compétences</Label>
+                  <Wrench className="absolute left-3 top-9 h-4 w-4 text-muted-foreground" />
+                  <Input id="skills-signup" placeholder="Ex: Cuisine, Bricolage" value={skills} onChange={(e) => setSkills(e.target.value)} required disabled={isLoading} className="pl-10"/>
+                </div>
+                <div className="relative space-y-2">
                   <Label htmlFor="password-signup">Mot de passe</Label>
-                  <Input id="password-signup" type="password" placeholder="********" value={password} onChange={(e) => setPassword(e.target.value)} required disabled={isLoading}/>
+                  <KeyRound className="absolute left-3 top-9 h-4 w-4 text-muted-foreground" />
+                  <Input id="password-signup" type="password" placeholder="********" value={password} onChange={(e) => setPassword(e.target.value)} required disabled={isLoading} className="pl-10"/>
                 </div>
               </CardContent>
               <CardFooter className="flex-col gap-4">
                 <Button className="w-full" type="submit" disabled={isLoading}>
                     {isLoading ? "Création..." : "Créer mon compte"}
-                </Button>
-                <Separator className="my-1"/>
-                <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} type="button" disabled={isLoading}>
-                    <GoogleIcon className="mr-2 h-4 w-4"/>
-                    S'inscrire avec Google
                 </Button>
               </CardFooter>
             </form>
@@ -173,3 +202,5 @@ export default function LoginPage() {
     </div>
   );
 }
+
+    
