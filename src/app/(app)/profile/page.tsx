@@ -89,14 +89,15 @@ export default function ProfilePage() {
 
       const profileData = {
         name: data.name,
-        email: authUser.email,
+        email: authUser.email, // Always keep email in sync
         age: data.age ? Number(data.age) : null,
         skills: data.skills || '',
-        avatarUrl: newAvatarUrl || `https://i.pravatar.cc/150?u=${authUser.uid}`,
+        avatarUrl: newAvatarUrl || userData.avatarUrl || `https://i.pravatar.cc/150?u=${authUser.uid}`,
         role: userData.role || 'member', // Preserve existing role
       };
 
-      await setDoc(userRef, profileData);
+      // Use setDoc with merge: true to safely update the document
+      await setDoc(userRef, profileData, { merge: true });
       
       toast({
         title: 'Profil mis à jour !',
@@ -116,13 +117,18 @@ export default function ProfilePage() {
               requestResourceData: data,
             });
             errorEmitter.emit('permission-error', permissionError);
+             toast({
+                variant: "destructive",
+                title: "Permission refusée",
+                description: "Vous n'avez pas la permission de modifier ce profil.",
+            });
+        } else {
+             toast({
+                variant: "destructive",
+                title: "Échec de la mise à jour",
+                description: error.message || "Impossible de sauvegarder vos informations.",
+            });
         }
-
-        toast({
-            variant: "destructive",
-            title: "Échec de la mise à jour",
-            description: error.message || "Impossible de sauvegarder vos informations. Veuillez vérifier vos permissions.",
-        });
     } finally {
       setIsUploading(false);
     }
@@ -155,7 +161,7 @@ export default function ProfilePage() {
                 <AvatarImage src={avatarPreview || authUser?.photoURL || ''} alt={authUser?.displayName || ''} />
                 <AvatarFallback className="text-3xl">{getInitials(watch('name') || authUser?.displayName || '')}</AvatarFallback>
               </Avatar>
-              <div className="text-center">
+               <div className="text-center">
                 <Input id="avatarFile" type="file" onChange={handleAvatarChange} accept="image/*" className="hidden" />
                 <Button type="button" variant="outline" asChild>
                   <Label htmlFor="avatarFile" className="cursor-pointer">
