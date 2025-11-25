@@ -10,13 +10,15 @@ import { fr } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTasks } from '@/contexts/tasks-context';
+import { Button } from './ui/button';
+import { Trash2 } from 'lucide-react';
 
 type TasksListProps = {
   tasks: Task[];
 };
 
 export function TasksList({ tasks }: TasksListProps) {
-  const { toggleTask } = useTasks();
+  const { toggleTask, deleteTask } = useTasks();
 
   const getInitials = (name: string) => name.charAt(0).toUpperCase();
 
@@ -66,6 +68,17 @@ export function TasksList({ tasks }: TasksListProps) {
                         <AvatarFallback>{getInitials(member.name)}</AvatarFallback>
                       </Avatar>
                     </div>
+                  )}
+                   {task.completed && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                      onClick={() => deleteTask(task.id)}
+                      aria-label="Supprimer la tâche"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   )}
                 </CardContent>
               </Card>

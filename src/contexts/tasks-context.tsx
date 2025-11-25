@@ -9,6 +9,7 @@ interface TasksContextType {
   setTasks: React.Dispatch<React.SetStateAction<Task[]>>;
   addTasks: (newTasks: Task[]) => void;
   toggleTask: (taskId: string, completed: boolean) => void;
+  deleteTask: (taskId: string) => void;
 }
 
 const TasksContext = createContext<TasksContextType | undefined>(undefined);
@@ -28,8 +29,12 @@ export const TasksProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     );
   };
 
+  const deleteTask = (taskId: string) => {
+    setTasks(prevTasks => prevTasks.filter(task => task.id !== taskId));
+  };
+
   return (
-    <TasksContext.Provider value={{ tasks, setTasks, addTasks, toggleTask }}>
+    <TasksContext.Provider value={{ tasks, setTasks, addTasks, toggleTask, deleteTask }}>
       {children}
     </TasksContext.Provider>
   );
