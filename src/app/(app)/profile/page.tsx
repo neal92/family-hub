@@ -4,8 +4,9 @@ import { useState, useEffect } from 'react';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useAuth, useFirestore, useUser as useAuthUser } from '@/firebase';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { useFirestore, useUser as useAuthUser } from '@/firebase';
+import { doc, setDoc } from 'firebase/firestore';
+import { useDocumentData } from 'react-firebase-hooks/firestore';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -31,7 +32,9 @@ export default function ProfilePage() {
   const { user: authUser, initialising: authLoading } = useAuthUser();
   const firestore = useFirestore();
   const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(true);
+  
+  const userRef = authUser ? doc(firestore, 'users', authUser.uid) : null;
+  const [userData, userDataLoading] = useDocumentData(userRef);
 
   const { register, handleSubmit, reset, watch, formState: { errors, isSubmitting } } = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
@@ -40,32 +43,21 @@ export default function ProfilePage() {
   const avatarUrl = watch('avatarUrl');
 
   useEffect(() => {
-    if (authUser && firestore) {
-      const fetchUserData = async () => {
-        setIsLoading(true);
-        const userRef = doc(firestore, 'users', authUser.uid);
-        const userSnap = await getDoc(userRef);
-        if (userSnap.exists()) {
-          const userData = userSnap.data();
-          reset({
-            name: userData.name || '',
-            age: userData.age || '',
-            skills: userData.skills || '',
-            avatarUrl: userData.avatarUrl || '',
-          });
-        }
-        setIsLoading(false);
-      };
-      fetchUserData();
+    if (userData) {
+      reset({
+        name: userData.name || '',
+        age: userData.age || '',
+        skills: userData.skills || '',
+        avatarUrl: userData.avatarUrl || '',
+      });
     }
-  }, [authUser, firestore, reset]);
+  }, [userData, reset]);
 
   const getInitials = (name: string) => name ? name.charAt(0).toUpperCase() : '';
 
   const onSubmit: SubmitHandler<ProfileFormValues> = async (data) => {
-    if (!authUser || !firestore) return;
+    if (!authUser || !firestore || !userRef) return;
 
-    const userRef = doc(firestore, 'users', authUser.uid);
     const profileData = {
       name: data.name,
       email: authUser.email,
@@ -74,30 +66,23 @@ export default function ProfilePage() {
       avatarUrl: data.avatarUrl || `https://i.pravatar.cc/150?u=${authUser.uid}`,
     };
 
-    try {
-        setDoc(userRef, profileData, { merge: true }).catch(async (serverError) => {
-            const permissionError = new FirestorePermissionError({
-              path: userRef.path,
-              operation: 'update',
-              requestResourceData: profileData,
-            });
-            errorEmitter.emit('permission-error', permissionError);
-          });
-      toast({
-        title: 'Profil mis à jour !',
-        description: 'Vos informations ont été sauvegardées avec succès.',
+    setDoc(userRef, profileData, { merge: true }).catch(async (serverError) => {
+        const permissionError = new FirestorePermissionError({
+          path: userRef.path,
+          operation: 'update',
+          requestResourceData: profileData,
+        });
+        errorEmitter.emit('permission-error', permissionError);
       });
-    } catch (error) {
-      console.error(error);
-      toast({
-        variant: 'destructive',
-        title: 'Oups !',
-        description: 'Une erreur est survenue lors de la mise à jour de votre profil.',
-      });
-    }
+    toast({
+      title: 'Profil mis à jour !',
+      description: 'Vos informations ont été sauvegardées avec succès.',
+    });
   };
   
-  if (isLoading || authLoading) {
+  const isLoading = authLoading || userDataLoading;
+
+  if (isLoading) {
       return (
         <div className="container mx-auto px-4 py-8 flex justify-center">
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground"/>
