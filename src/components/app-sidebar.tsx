@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/sidebar';
 import Link from 'next/link';
 import { BottomBar, BottomBarItem } from '@/components/bottom-bar';
+import { useAuth } from '@/firebase';
 
 const mainNavItems = [
   { href: '/dashboard', icon: Home, label: 'Tableau de bord' },
@@ -40,6 +41,7 @@ const secondaryNavItems = [
 export function AppSidebar() {
   const pathname = usePathname();
   const { isMobile } = useSidebar();
+  const { signOut } = useAuth();
 
   if (isMobile) {
     return (
@@ -120,7 +122,7 @@ export function AppSidebar() {
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton tooltip="Se déconnecter">
+            <SidebarMenuButton tooltip="Se déconnecter" onClick={() => signOut()}>
               <LogOut />
               <span>Se déconnecter</span>
             </SidebarMenuButton>
