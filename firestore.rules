@@ -2,10 +2,11 @@ rules_version = '2';
  
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Users can read their own profile and create it
+    // Users can read other user profiles, but only update their own.
+    // They can also create their own user document.
     match /users/{userId} {
-      allow read, create: if request.auth != null;
-      allow update, delete: if request.auth.uid == userId;
+      allow read: if request.auth != null;
+      allow create, update, delete: if request.auth.uid == userId;
     }
     
     // By default, deny all other reads and writes
