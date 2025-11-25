@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -38,6 +38,12 @@ export default function ProfilePage() {
 
   const { register, handleSubmit, reset, watch, formState: { errors, isSubmitting } } = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
+    defaultValues: {
+        name: '',
+        age: '',
+        skills: '',
+        avatarUrl: '',
+    }
   });
 
   const avatarUrl = watch('avatarUrl');
