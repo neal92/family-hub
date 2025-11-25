@@ -54,9 +54,19 @@ export default function LoginPage() {
   const handleAuthError = (error: any, action: 'connexion' | 'inscription') => {
     console.error(error);
     let description = error.message || `Une erreur est survenue lors de la tentative de ${action}.`;
-    if (error.code === 'auth/configuration-not-found') {
-      description = "La méthode de connexion Google n'est pas activée dans la console Firebase. Veuillez l'activer pour continuer.";
+    
+    switch (error.code) {
+      case 'auth/configuration-not-found':
+        description = "La méthode de connexion Google n'est pas activée dans la console Firebase. Veuillez l'activer pour continuer.";
+        break;
+      case 'auth/weak-password':
+        description = "Le mot de passe est trop faible. Il doit contenir au moins 6 caractères.";
+        break;
+      case 'auth/email-already-in-use':
+        description = "Cette adresse e-mail est déjà utilisée par un autre compte.";
+        break;
     }
+
     toast({
       variant: 'destructive',
       title: `Erreur de ${action}`,
