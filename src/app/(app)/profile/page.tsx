@@ -73,7 +73,7 @@ export default function ProfilePage() {
   const getInitials = (name: string) => name ? name.charAt(0).toUpperCase() : '';
 
   const onSubmit: SubmitHandler<ProfileFormValues> = async (data) => {
-    if (!authUser || !firestore || !userRef) return;
+    if (!authUser || !firestore || !userRef || !userData) return;
 
     setIsUploading(true);
 
@@ -103,9 +103,10 @@ export default function ProfilePage() {
       age: data.age ? Number(data.age) : null,
       skills: data.skills || '',
       avatarUrl: newAvatarUrl || `https://i.pravatar.cc/150?u=${authUser.uid}`,
+      role: userData.role || 'member', // Preserve existing role
     };
 
-    setDoc(userRef, profileData, { merge: true }).catch(async (serverError) => {
+    setDoc(userRef, profileData).catch(async (serverError) => {
         const permissionError = new FirestorePermissionError({
           path: userRef.path,
           operation: 'update',
