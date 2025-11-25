@@ -9,17 +9,17 @@ export default function AppLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <AuthProvider>
-      <TasksProvider>
-        <SidebarProvider>
+    <TasksProvider>
+      <SidebarProvider>
+        <AuthProvider>
           <AppSidebar />
           <SidebarInset>
             <div className="min-h-screen">
               {children}
             </div>
           </SidebarInset>
-        </SidebarProvider>
-      </TasksProvider>
-    </AuthProvider>
+        </AuthProvider>
+      </SidebarProvider>
+    </TasksProvider>
   );
 }
