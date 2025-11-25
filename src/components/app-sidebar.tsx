@@ -116,10 +116,12 @@ export function AppSidebar() {
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton tooltip="Paramètres">
-              <Settings />
-              <span>Paramètres</span>
-            </SidebarMenuButton>
+             <Link href="/profile">
+                <SidebarMenuButton tooltip="Profil & Paramètres" isActive={pathname.startsWith('/profile')}>
+                  <Settings />
+                  <span>Profil & Paramètres</span>
+                </SidebarMenuButton>
+              </Link>
           </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton tooltip="Se déconnecter" onClick={() => signOut()}>
