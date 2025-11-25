@@ -6,8 +6,10 @@ import {
   GoogleAuthProvider,
   signInWithPopup,
   createUserWithEmailAndPassword,
+  updateProfile,
 } from 'firebase/auth';
-import { useAuth } from '@/firebase';
+import { doc, setDoc } from 'firebase/firestore';
+import { useAuth, useFirestore } from '@/firebase';
 import { Home, Mail, KeyRound, User, Cake, Wrench } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,6 +19,8 @@ import { useToast } from '@/hooks/use-toast';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid" viewBox="0 0 256 262" {...props}>
@@ -29,6 +33,7 @@ const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
 
 export default function LoginPage() {
   const { auth } = useAuth();
+  const firestore = useFirestore();
   const { toast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -59,6 +64,26 @@ export default function LoginPage() {
     });
   };
 
+  const createUserProfile = (user: import('firebase/auth').User, additionalData: Record<string, any> = {}) => {
+    const userRef = doc(firestore, 'users', user.uid);
+    const profileData = {
+      name: user.displayName || additionalData.name || 'Nouveau membre',
+      email: user.email,
+      avatarUrl: user.photoURL || `https://i.pravatar.cc/150?u=${user.uid}`,
+      age: additionalData.age ? parseInt(additionalData.age, 10) : null,
+      skills: additionalData.skills || '',
+    };
+    
+    setDoc(userRef, profileData, { merge: true }).catch(async (serverError) => {
+      const permissionError = new FirestorePermissionError({
+        path: userRef.path,
+        operation: 'create',
+        requestResourceData: profileData,
+      });
+      errorEmitter.emit('permission-error', permissionError);
+    });
+  };
+
   const handleEmailSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!auth) return;
@@ -75,18 +100,17 @@ export default function LoginPage() {
 
   const handleEmailSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!auth) return;
+    if (!auth || !firestore) return;
     setIsLoading(true);
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      // Ici, vous enregistreriez les informations supplémentaires (name, age, skills) dans votre base de données (ex: Firestore)
-      // avec l'UID de l'utilisateur : userCredential.user.uid
-      console.log('User created:', userCredential.user.uid, { name, age, skills });
+      await updateProfile(userCredential.user, { displayName: name });
+      createUserProfile(userCredential.user, { name, age, skills });
+      
       toast({
         title: 'Compte créé !',
         description: 'Vous pouvez maintenant vous connecter.',
       });
-      // Pour cet exemple, nous redirigeons simplement après l'inscription
       handleAuthSuccess();
     } catch (error) {
       handleAuthError(error, 'inscription');
@@ -96,11 +120,12 @@ export default function LoginPage() {
   };
 
   const handleGoogleSignIn = async () => {
-    if (!auth) return;
+    if (!auth || !firestore) return;
     setIsLoading(true);
     try {
       const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
+      const result = await signInWithPopup(auth, provider);
+      createUserProfile(result.user);
       handleAuthSuccess();
     } catch (error) {
       handleAuthError(error, 'connexion');
@@ -202,5 +227,3 @@ export default function LoginPage() {
     </div>
   );
 }
-
-    

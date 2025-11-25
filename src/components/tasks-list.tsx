@@ -1,7 +1,6 @@
 "use client";
 
-import type { Task } from '@/lib/types';
-import { familyMembers as allFamilyMembers } from '@/lib/data';
+import type { Task, User } from '@/lib/types';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent } from '@/components/ui/card';
@@ -11,7 +10,10 @@ import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTasks } from '@/contexts/tasks-context';
 import { Button } from './ui/button';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Loader2 } from 'lucide-react';
+import { useFirestore } from '@/firebase';
+import { collection } from 'firebase/firestore';
+import { useCollection } from 'react-firebase-hooks/firestore';
 
 type TasksListProps = {
   tasks: Task[];
@@ -19,14 +21,21 @@ type TasksListProps = {
 
 export function TasksList({ tasks }: TasksListProps) {
   const { toggleTask, deleteTask } = useTasks();
+  const firestore = useFirestore();
+  const [value, loading] = useCollection(collection(firestore, 'users'));
+  const allFamilyMembers = value?.docs.map(doc => ({ id: doc.id, ...doc.data() } as User));
 
-  const getInitials = (name: string) => name.charAt(0).toUpperCase();
+  const getInitials = (name: string) => name ? name.charAt(0).toUpperCase() : '';
+
+  if (loading) {
+      return <div className="flex justify-center items-center h-40"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground"/></div>
+  }
 
   return (
     <div className="space-y-4">
       <AnimatePresence>
         {tasks.map(task => {
-          const member = allFamilyMembers.find(m => m.id === task.assignedTo);
+          const member = allFamilyMembers?.find(m => m.id === task.assignedTo);
           return (
             <motion.div
               key={task.id}

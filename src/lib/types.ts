@@ -2,9 +2,10 @@ export type User = {
   id: string;
   name: string;
   avatarUrl: string;
-  age: number;
-  skills: string;
-  availability: string;
+  age?: number;
+  skills?: string;
+  availability?: string;
+  email?: string;
 };
 
 export type Event = {

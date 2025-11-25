@@ -2,7 +2,6 @@
 
 import { useState, useTransition } from 'react';
 import { suggestChores, SuggestChoresOutput } from '@/ai/flows/suggest-chores';
-import { familyMembers as allFamilyMembers } from '@/lib/data';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -10,15 +9,26 @@ import { Button } from '@/components/ui/button';
 import { Sparkles, Loader2, Users, ListChecks, PlusCircle } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { useTasks } from '@/contexts/tasks-context';
+import { useFirestore } from '@/firebase';
+import { useCollection } from 'react-firebase-hooks/firestore';
+import { collection } from 'firebase/firestore';
+import type { User } from '@/lib/types';
+
 
 export function ChoreSuggester() {
   const [isPending, startTransition] = useTransition();
   const [result, setResult] = useState<SuggestChoresOutput | null>(null);
   const [error, setError] = useState<string | null>(null);
   const { addTasks } = useTasks();
+  
+  const firestore = useFirestore();
+  const [value, loading] = useCollection(collection(firestore, 'users'));
+  const familyMembers = value?.docs.map(doc => ({ id: doc.id, ...doc.data() } as User));
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (!familyMembers) return;
+
     const formData = new FormData(event.currentTarget);
     const chores = (formData.get('chores') as string).split('\n').filter(c => c.trim() !== '');
     
@@ -28,7 +38,12 @@ export function ChoreSuggester() {
     }
 
     const input = {
-      familyMembers: allFamilyMembers,
+      familyMembers: familyMembers.map(m => ({
+        name: m.name,
+        age: m.age || 0,
+        skills: m.skills || '',
+        availability: m.availability || '',
+      })),
       chores,
     };
 
@@ -45,10 +60,10 @@ export function ChoreSuggester() {
   };
 
   const handleAddTasks = () => {
-    if (!result) return;
+    if (!result || !familyMembers) return;
 
     const newTasks = result.map(assignment => {
-      const member = allFamilyMembers.find(m => m.name === assignment.familyMember);
+      const member = familyMembers.find(m => m.name === assignment.familyMember);
       return {
         id: `task-${Date.now()}-${Math.random()}`,
         title: assignment.chore,
@@ -63,7 +78,7 @@ export function ChoreSuggester() {
   };
 
 
-  const getInitials = (name: string) => name.charAt(0).toUpperCase();
+  const getInitials = (name: string) => name ? name.charAt(0).toUpperCase() : '';
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -76,17 +91,20 @@ export function ChoreSuggester() {
           <CardContent className="space-y-4">
             <div>
               <Label>Membres de la famille</Label>
-              <div className="flex flex-wrap gap-4 mt-2">
-                {allFamilyMembers.map(member => (
-                  <div key={member.id} className="flex items-center gap-2 p-2 rounded-md bg-muted">
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src={member.avatarUrl} alt={member.name} />
-                      <AvatarFallback>{getInitials(member.name)}</AvatarFallback>
-                    </Avatar>
-                    <span className="text-sm font-medium">{member.name}</span>
-                  </div>
-                ))}
-              </div>
+              {loading && <Loader2 className="mt-2 h-5 w-5 animate-spin" />}
+              {!loading && familyMembers && (
+                <div className="flex flex-wrap gap-4 mt-2">
+                  {familyMembers.map(member => (
+                    <div key={member.id} className="flex items-center gap-2 p-2 rounded-md bg-muted">
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={member.avatarUrl} alt={member.name} />
+                        <AvatarFallback>{getInitials(member.name)}</AvatarFallback>
+                      </Avatar>
+                      <span className="text-sm font-medium">{member.name}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="chores">Tâches à effectuer</Label>
@@ -95,12 +113,12 @@ export function ChoreSuggester() {
                 name="chores"
                 placeholder="- Promener le chien&#10;- Sortir les poubelles&#10;- Faire la vaisselle"
                 rows={5}
-                disabled={isPending}
+                disabled={isPending || loading}
               />
             </div>
           </CardContent>
           <CardFooter>
-            <Button type="submit" disabled={isPending}>
+            <Button type="submit" disabled={isPending || loading}>
               {isPending ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : (
@@ -120,10 +138,10 @@ export function ChoreSuggester() {
         <CardContent className="flex-1 flex items-center justify-center">
           {isPending && <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />}
           {error && <p className="text-destructive text-sm">{error}</p>}
-          {result && result.length > 0 ? (
+          {result && result.length > 0 && familyMembers ? (
             <ul className="space-y-4 w-full">
               {result.map((assignment, index) => {
-                const member = allFamilyMembers.find(m => m.name === assignment.familyMember);
+                const member = familyMembers.find(m => m.name === assignment.familyMember);
                 return (
                   <li key={index} className="flex items-start gap-4 bg-muted/50 p-3 rounded-lg">
                     {member ? (

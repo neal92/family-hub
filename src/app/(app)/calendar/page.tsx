@@ -1,20 +1,29 @@
 'use client';
 
-import { events, familyMembers } from '@/lib/data';
+import { events } from '@/lib/data';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
-import { Calendar as CalendarIcon, Plus } from 'lucide-react';
+import { Calendar as CalendarIcon, Plus, Loader2 } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useState, useEffect } from 'react';
+import { useFirestore } from '@/firebase';
+import { useCollection } from 'react-firebase-hooks/firestore';
+import { collection } from 'firebase/firestore';
+import type { User } from '@/lib/types';
+
 
 export default function CalendarPage() {
   const [date, setDate] = useState<Date | undefined>(undefined);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   
+  const firestore = useFirestore();
+  const [value, loading] = useCollection(collection(firestore, 'users'));
+  const familyMembers = value?.docs.map(doc => ({ id: doc.id, ...doc.data() } as User));
+
   useEffect(() => {
       setDate(new Date());
   }, []);
@@ -24,7 +33,7 @@ export default function CalendarPage() {
   }, [date])
 
 
-  const getInitials = (name: string) => name.charAt(0).toUpperCase();
+  const getInitials = (name: string) => name ? name.charAt(0).toUpperCase() : '';
 
   const todaysEvents = events.filter(event => {
     try {
@@ -66,7 +75,9 @@ export default function CalendarPage() {
         
         <div className="space-y-6">
           <h2 className="font-headline text-xl font-semibold">Événements pour {format(selectedDate, 'd MMMM', { locale: fr })}</h2>
-          {todaysEvents.length > 0 ? (
+          {loading && <div className="flex justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>}
+          
+          {!loading && familyMembers && todaysEvents.length > 0 ? (
             todaysEvents.map(event => (
               <Card key={event.id} className="transition-all hover:shadow-lg">
                 <CardHeader>
@@ -92,10 +103,12 @@ export default function CalendarPage() {
               </Card>
             ))
           ) : (
-            <Card className="flex flex-col items-center justify-center p-8 border-dashed">
-                <CalendarIcon className="w-12 h-12 text-muted-foreground mb-4"/>
-                <p className="text-muted-foreground">Aucun événement prévu pour ce jour.</p>
-            </Card>
+            !loading && (
+                <Card className="flex flex-col items-center justify-center p-8 border-dashed">
+                    <CalendarIcon className="w-12 h-12 text-muted-foreground mb-4"/>
+                    <p className="text-muted-foreground">Aucun événement prévu pour ce jour.</p>
+                </Card>
+            )
           )}
         </div>
       </div>

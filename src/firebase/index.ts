@@ -10,6 +10,9 @@ import { Firestore, getFirestore } from 'firebase/firestore';
 
 export * from './provider';
 export * from './auth/use-user';
+export * from './errors';
+export * from './error-emitter';
+
 export type { User } from 'firebase/auth';
 
 type FirebaseInstances = {
