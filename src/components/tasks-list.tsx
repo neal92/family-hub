@@ -1,7 +1,6 @@
 "use client";
 
-import { useState } from 'react';
-import type { Task, User } from '@/lib/types';
+import type { Task } from '@/lib/types';
 import { familyMembers as allFamilyMembers } from '@/lib/data';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -10,17 +9,14 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTasks } from '@/contexts/tasks-context';
 
 type TasksListProps = {
-  initialTasks: Task[];
+  tasks: Task[];
 };
 
-export function TasksList({ initialTasks }: TasksListProps) {
-  const [tasks, setTasks] = useState<Task[]>(initialTasks);
-
-  const handleTaskCompletion = (taskId: string, completed: boolean) => {
-    setTasks(tasks.map(task => task.id === taskId ? { ...task, completed } : task));
-  };
+export function TasksList({ tasks }: TasksListProps) {
+  const { toggleTask } = useTasks();
 
   const getInitials = (name: string) => name.charAt(0).toUpperCase();
 
@@ -43,14 +39,14 @@ export function TasksList({ initialTasks }: TasksListProps) {
               )}>
                 <CardContent className="p-4 flex items-center gap-4">
                   <Checkbox
-                    id={`task-${task.id}`}
+                    id={`task-list-${task.id}`}
                     checked={task.completed}
-                    onCheckedChange={(checked) => handleTaskCompletion(task.id, !!checked)}
+                    onCheckedChange={(checked) => toggleTask(task.id, !!checked)}
                     className="h-5 w-5"
                   />
                   <div className="flex-1">
                     <label
-                      htmlFor={`task-${task.id}`}
+                      htmlFor={`task-list-${task.id}`}
                       className={cn(
                         "font-medium cursor-pointer",
                         task.completed && "line-through text-muted-foreground"

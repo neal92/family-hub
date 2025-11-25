@@ -1,4 +1,6 @@
-import { familyMembers, events, tasks, shoppingList } from '@/lib/data';
+'use client';
+
+import { familyMembers, events, shoppingList } from '@/lib/data';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -8,8 +10,10 @@ import { PageHeader } from '@/components/page-header';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { useTasks } from '@/contexts/tasks-context';
 
 export default function DashboardPage() {
+  const { tasks, toggleTask } = useTasks();
   const upcomingEvents = events.slice(0, 3);
   const todaysTasks = tasks.filter(t => !t.completed).slice(0, 4);
   const shoppingItemCount = shoppingList.flatMap(c => c.items).filter(i => !i.purchased).length;
@@ -63,8 +67,8 @@ export default function DashboardPage() {
                 const member = familyMembers.find(m => m.id === task.assignedTo);
                 return (
                   <li key={task.id} className="flex items-center gap-3">
-                    <Checkbox id={`task-${task.id}`} checked={task.completed} />
-                    <label htmlFor={`task-${task.id}`} className="flex-1 text-sm font-medium">{task.title}</label>
+                    <Checkbox id={`task-dashboard-${task.id}`} checked={task.completed} onCheckedChange={(checked) => toggleTask(task.id, !!checked)} />
+                    <label htmlFor={`task-dashboard-${task.id}`} className="flex-1 text-sm font-medium">{task.title}</label>
                     {member && (
                       <Avatar className="h-6 w-6">
                         <AvatarImage src={member.avatarUrl} alt={member.name} />

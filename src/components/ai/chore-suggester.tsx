@@ -7,13 +7,15 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { Sparkles, Loader2, Users, ListChecks } from 'lucide-react';
+import { Sparkles, Loader2, Users, ListChecks, PlusCircle } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import { useTasks } from '@/contexts/tasks-context';
 
 export function ChoreSuggester() {
   const [isPending, startTransition] = useTransition();
   const [result, setResult] = useState<SuggestChoresOutput | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const { addTasks } = useTasks();
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -41,6 +43,25 @@ export function ChoreSuggester() {
       }
     });
   };
+
+  const handleAddTasks = () => {
+    if (!result) return;
+
+    const newTasks = result.map(assignment => {
+      const member = allFamilyMembers.find(m => m.name === assignment.familyMember);
+      return {
+        id: `task-${Date.now()}-${Math.random()}`,
+        title: assignment.chore,
+        assignedTo: member ? member.id : 'unassigned',
+        dueDate: new Date(new Date().setDate(new Date().getDate() + 7)), // Due in 7 days
+        completed: false,
+      };
+    });
+    addTasks(newTasks);
+    // Optionally clear the results after adding
+    setResult(null); 
+  };
+
 
   const getInitials = (name: string) => name.charAt(0).toUpperCase();
 
@@ -85,7 +106,7 @@ export function ChoreSuggester() {
               ) : (
                 <Sparkles className="mr-2 h-4 w-4" />
               )}
-              Attribuer les tâches
+              Suggérer les tâches
             </Button>
           </CardFooter>
         </form>
@@ -99,7 +120,7 @@ export function ChoreSuggester() {
         <CardContent className="flex-1 flex items-center justify-center">
           {isPending && <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />}
           {error && <p className="text-destructive text-sm">{error}</p>}
-          {result ? (
+          {result && result.length > 0 ? (
             <ul className="space-y-4 w-full">
               {result.map((assignment, index) => {
                 const member = allFamilyMembers.find(m => m.name === assignment.familyMember);
@@ -129,6 +150,14 @@ export function ChoreSuggester() {
             )
           )}
         </CardContent>
+         {result && result.length > 0 && (
+          <CardFooter>
+            <Button onClick={handleAddTasks} className="w-full">
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Ajouter à la liste des tâches
+            </Button>
+          </CardFooter>
+        )}
       </Card>
     </div>
   );

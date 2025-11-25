@@ -1,12 +1,16 @@
-import { tasks } from '@/lib/data';
+'use client';
+
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TasksList } from '@/components/tasks-list';
+import { useTasks } from '@/contexts/tasks-context';
 
 export default function TasksPage() {
-  const allTasks = tasks.sort((a, b) => a.dueDate.getTime() - b.dueDate.getTime());
+  const { tasks } = useTasks();
+
+  const allTasks = [...tasks].sort((a, b) => a.dueDate.getTime() - b.dueDate.getTime());
   const todoTasks = allTasks.filter(task => !task.completed);
   const completedTasks = allTasks.filter(task => task.completed);
 
@@ -25,13 +29,13 @@ export default function TasksPage() {
           <TabsTrigger value="all">Toutes ({allTasks.length})</TabsTrigger>
         </TabsList>
         <TabsContent value="all" className="mt-6">
-          <TasksList initialTasks={allTasks} />
+          <TasksList tasks={allTasks} />
         </TabsContent>
         <TabsContent value="todo" className="mt-6">
-          <TasksList initialTasks={todoTasks} />
+          <TasksList tasks={todoTasks} />
         </TabsContent>
         <TabsContent value="completed" className="mt-6">
-          <TasksList initialTasks={completedTasks} />
+          <TasksList tasks={completedTasks} />
         </TabsContent>
       </Tabs>
     </div>
