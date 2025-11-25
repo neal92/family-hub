@@ -1,3 +1,5 @@
+'use client';
+
 import { events, familyMembers } from '@/lib/data';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
@@ -7,13 +9,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { useState } from 'react';
 
 export default function CalendarPage() {
+  const [date, setDate] = useState<Date | undefined>(new Date());
+
   const getInitials = (name: string) => name.charAt(0).toUpperCase();
 
-  // For demonstration, we'll just show today's events
-  const today = new Date();
-  const todaysEvents = events.filter(event => format(event.date, 'yyyy-MM-dd') === format(today, 'yyyy-MM-dd'));
+  const selectedDate = date || new Date();
+  const todaysEvents = events.filter(event => format(event.date, 'yyyy-MM-dd') === format(selectedDate, 'yyyy-MM-dd'));
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -29,7 +33,8 @@ export default function CalendarPage() {
             <CardContent className="p-2">
               <Calendar
                 mode="single"
-                selected={new Date()}
+                selected={date}
+                onSelect={setDate}
                 className="rounded-md w-full"
                 locale={fr}
               />
@@ -38,7 +43,7 @@ export default function CalendarPage() {
         </div>
         
         <div className="space-y-6">
-          <h2 className="font-headline text-xl font-semibold">Événements pour {format(new Date(), 'd MMMM', { locale: fr })}</h2>
+          <h2 className="font-headline text-xl font-semibold">Événements pour {format(selectedDate, 'd MMMM', { locale: fr })}</h2>
           {todaysEvents.length > 0 ? (
             todaysEvents.map(event => (
               <Card key={event.id} className="transition-all hover:shadow-lg">
@@ -67,7 +72,7 @@ export default function CalendarPage() {
           ) : (
             <Card className="flex flex-col items-center justify-center p-8 border-dashed">
                 <CalendarIcon className="w-12 h-12 text-muted-foreground mb-4"/>
-                <p className="text-muted-foreground">Aucun événement prévu pour aujourd'hui.</p>
+                <p className="text-muted-foreground">Aucun événement prévu pour ce jour.</p>
             </Card>
           )}
         </div>
