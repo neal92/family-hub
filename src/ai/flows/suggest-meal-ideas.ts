@@ -68,9 +68,9 @@ const prompt = ai.definePrompt({
   name: 'suggestMealIdeasPrompt',
   input: {schema: SuggestMealIdeasInputSchema},
   output: {schema: SuggestMealIdeasOutputSchema},
-  prompt: `You are a meal planning assistant. Your goal is to provide three distinct and appealing meal ideas based on the user's input. For each meal, provide a name, a short description, and a complete, step-by-step recipe formatted with Markdown. The recipe must start with a list of ingredients, followed by numbered steps for the instructions. All responses must be in French.
+  prompt: `Vous êtes un assistant de planification de repas. Votre objectif est de fournir trois idées de repas distinctes et attrayantes basées sur les informations de l'utilisateur. Pour chaque repas, fournissez un nom, une courte description et une recette complète, étape par étape, formatée avec Markdown. La recette doit commencer par une liste d'ingrédients, suivie d'étapes numérotées pour les instructions. Toutes les réponses doivent être en français.
 
-User's prompt (contains ingredients, preferences, and/or restrictions): {{{availableIngredients}}}
+Préférences et ingrédients de l'utilisateur : {{{availableIngredients}}}
 `,
 });
 

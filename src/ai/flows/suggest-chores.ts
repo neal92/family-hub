@@ -43,26 +43,26 @@ const prompt = ai.definePrompt({
   name: 'suggestChoresPrompt',
   input: {schema: SuggestChoresInputSchema},
   output: {schema: SuggestChoresOutputSchema},
-  prompt: `You are an AI assistant that suggests chore assignments for family members. All responses must be in French.
+  prompt: `Vous êtes un assistant IA qui suggère des attributions de corvées pour les membres de la famille. Toutes les réponses doivent être en français.
 
-Given the following family members and their attributes:
+Étant donné les membres de la famille suivants et leurs attributs :
 
 {{#each familyMembers}}
-- Name: {{this.name}}, Age: {{this.age}}, Skills: {{this.skills}}, Availability: {{this.availability}}
+- Nom: {{this.name}}, Âge: {{this.age}}, Compétences: {{this.skills}}, Disponibilité: {{this.availability}}
 {{/each}}
 
-And the following chores:
+Et les corvées suivantes :
 
 {{#each chores}}
 - {{this}}
 {{/each}}
 
-Suggest chore assignments, taking into account each family member's age, skills, and availability. Provide a reason for each assignment.
+Suggérez des attributions de corvées, en tenant compte de l'âge, des compétences et de la disponibilité de chaque membre de la famille. Fournissez une raison en français pour chaque attribution.
 
-Format your response as a JSON array of objects, where each object has the following keys:
-- familyMember: The name of the family member.
-- chore: The chore assigned to the family member.
-- reason: The reason for assigning the chore to the family member.
+Formatez votre réponse sous forme de tableau JSON d'objets, où chaque objet a les clés suivantes :
+- familyMember: Le nom du membre de la famille.
+- chore: La corvée assignée au membre de la famille.
+- reason: La raison de l'attribution de la corvée au membre de la famille.
 `,
 });
 

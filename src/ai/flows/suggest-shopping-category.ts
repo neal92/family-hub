@@ -33,20 +33,21 @@ const prompt = ai.definePrompt({
   output: {schema: SuggestShoppingCategoryOutputSchema},
   prompt: `Tu es un assistant expert en listes de courses. Pour l'article "{{itemName}}", suggère la catégorie de supermarché la plus appropriée en français.
 
-Voici les catégories que l'utilisateur a déjà créées :
+Voici les catégories que l'utilisateur a déjà créées, privilégie l'une d'entre elles si elle est pertinente:
 {{#each existingCategories}}
 - {{this}}
 {{/each}}
 
-Privilégie une de ces catégories si elle est pertinente pour l'article. Si aucune ne correspond, tu peux suggérer une nouvelle catégorie logique.
+Si aucune catégorie existante ne correspond, suggère une nouvelle catégorie logique et commune en français.
 
 Exemples de suggestions si aucune catégorie existante ne correspond :
 - Article: Lait -> Catégorie: Produits laitiers
 - Article: Pommes -> Catégorie: Fruits et Légumes
-- Article: Papier toilette -> Catégorie: Hygiène
+- Article: Papier toilette -> Catégorie: Hygiène et Entretien
 - Article: Steak haché -> Catégorie: Boucherie
+- Article: Sel -> Catégorie: Épicerie
 
-Ne retourne que l'objet JSON avec la clé "category".`,
+Ne retourne que l'objet JSON avec la clé "category". La réponse doit être uniquement en français.`,
 });
 
 const suggestShoppingCategoryFlow = ai.defineFlow(
