@@ -9,17 +9,33 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function CalendarPage() {
-  const [date, setDate] = useState<Date | undefined>(new Date());
+  const [date, setDate] = useState<Date | undefined>(undefined);
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  
+  useEffect(() => {
+      setDate(new Date());
+  }, []);
+
+  useEffect(() => {
+    setSelectedDate(date || new Date());
+  }, [date])
+
 
   const getInitials = (name: string) => name.charAt(0).toUpperCase();
 
-  const selectedDate = date || new Date();
-  const todaysEvents = events.filter(event => format(event.date, 'yyyy-MM-dd') === format(selectedDate, 'yyyy-MM-dd'));
+  const todaysEvents = events.filter(event => {
+    try {
+      return format(new Date(event.date), 'yyyy-MM-dd') === format(selectedDate, 'yyyy-MM-dd');
+    } catch (e) {
+      // Invalid date in mock data, ignore
+      return false;
+    }
+  });
 
-  const eventDates = events.map(event => event.date);
+  const eventDates = events.map(event => new Date(event.date));
 
   return (
     <div className="container mx-auto px-4 py-8">
