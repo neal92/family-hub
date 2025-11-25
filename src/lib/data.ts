@@ -14,22 +14,29 @@ export const familyMembers: User[] = [
   { id: 'user-4', name: 'Ben', avatarUrl: avatar4, age: 11, skills: "Pet care", availability: "Weekends" },
 ];
 
+const today = new Date();
+const getFutureDate = (days: number) => {
+    const date = new Date();
+    date.setDate(today.getDate() + days);
+    return date;
+};
+
 export const events: Event[] = [
-  { id: 'evt-1', title: "Emily's Soccer Match", date: new Date(new Date().setDate(new Date().getDate() + 2)), description: "Away game vs. the Eagles.", attendees: ['user-1', 'user-2', 'user-3', 'user-4'] },
-  { id: 'evt-2', title: "Dentist Appointment (Ben)", date: new Date(new Date().setDate(new Date().getDate() + 5)), description: "Annual check-up for Ben.", attendees: ['user-1', 'user-4'] },
-  { id: 'evt-3', title: "Family Movie Night", date: new Date(new Date().setDate(new Date().getDate() + 7)), description: "Pizza and a movie at home.", attendees: ['user-1', 'user-2', 'user-3', 'user-4'] },
-  { id: 'evt-4', title: "Parent-Teacher Conference", date: new Date(new Date().setDate(new Date().getDate() + 10)), description: "Conference for Emily at Northwood High.", attendees: ['user-2'] },
-  { id: 'evt-5', title: "Grandma's Birthday", date: new Date(new Date().setDate(new Date().getDate() + 14)), description: "Dinner at Grandma's house.", attendees: ['user-1', 'user-2', 'user-3', 'user-4'] },
+  { id: 'evt-1', title: "Emily's Soccer Match", date: getFutureDate(2), description: "Away game vs. the Eagles.", attendees: ['user-1', 'user-2', 'user-3', 'user-4'] },
+  { id: 'evt-2', title: "Dentist Appointment (Ben)", date: getFutureDate(5), description: "Annual check-up for Ben.", attendees: ['user-1', 'user-4'] },
+  { id: 'evt-3', title: "Family Movie Night", date: getFutureDate(7), description: "Pizza and a movie at home.", attendees: ['user-1', 'user-2', 'user-3', 'user-4'] },
+  { id: 'evt-4', title: "Parent-Teacher Conference", date: getFutureDate(10), description: "Conference for Emily at Northwood High.", attendees: ['user-2'] },
+  { id: 'evt-5', title: "Grandma's Birthday", date: getFutureDate(14), description: "Dinner at Grandma's house.", attendees: ['user-1', 'user-2', 'user-3', 'user-4'] },
 ];
 
 export const tasks: Task[] = [
-  { id: 'task-1', title: 'Walk the dog', assignedTo: 'user-3', dueDate: new Date(), completed: false },
-  { id: 'task-2', title: 'Take out the trash', assignedTo: 'user-4', dueDate: new Date(), completed: true },
-  { id: 'task-3', title: 'Plan weekly meals', assignedTo: 'user-1', dueDate: new Date(new Date().setDate(new Date().getDate() + 1)), completed: false },
-  { id: 'task-4', title: 'Fix leaky faucet', assignedTo: 'user-2', dueDate: new Date(new Date().setDate(new Date().getDate() + 3)), completed: false },
-  { id: 'task-5', title: 'Clean your room', assignedTo: 'user-3', dueDate: new Date(), completed: false },
-  { id: 'task-6', title: 'Finish history homework', assignedTo: 'user-3', dueDate: new Date(new Date().setDate(new Date().getDate() + 2)), completed: false },
-  { id: 'task-7', title: 'Water the plants', assignedTo: 'user-4', dueDate: new Date(new Date().setDate(new Date().getDate() + 1)), completed: true },
+  { id: 'task-1', title: 'Walk the dog', assignedTo: 'user-3', dueDate: getFutureDate(0), completed: false },
+  { id: 'task-2', title: 'Take out the trash', assignedTo: 'user-4', dueDate: getFutureDate(0), completed: true },
+  { id: 'task-3', title: 'Plan weekly meals', assignedTo: 'user-1', dueDate: getFutureDate(1), completed: false },
+  { id: 'task-4', title: 'Fix leaky faucet', assignedTo: 'user-2', dueDate: getFutureDate(3), completed: false },
+  { id: 'task-5', title: 'Clean your room', assignedTo: 'user-3', dueDate: getFutureDate(0), completed: false },
+  { id: 'task-6', title: 'Finish history homework', assignedTo: 'user-3', dueDate: getFutureDate(2), completed: false },
+  { id: 'task-7', title: 'Water the plants', assignedTo: 'user-4', dueDate: getFutureDate(1), completed: true },
 ];
 
 export const shoppingList: { category: string, items: ShoppingItem[] }[] = [

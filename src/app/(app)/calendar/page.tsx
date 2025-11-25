@@ -29,7 +29,7 @@ export default function CalendarPage() {
             <CardContent className="p-2">
               <Calendar
                 mode="single"
-                selected={today}
+                selected={new Date()}
                 className="rounded-md w-full"
                 locale={fr}
               />
@@ -38,7 +38,7 @@ export default function CalendarPage() {
         </div>
         
         <div className="space-y-6">
-          <h2 className="font-headline text-xl font-semibold">Événements pour {format(today, 'd MMMM', { locale: fr })}</h2>
+          <h2 className="font-headline text-xl font-semibold">Événements pour {format(new Date(), 'd MMMM', { locale: fr })}</h2>
           {todaysEvents.length > 0 ? (
             todaysEvents.map(event => (
               <Card key={event.id} className="transition-all hover:shadow-lg">
