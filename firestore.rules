@@ -2,14 +2,20 @@ rules_version = '2';
  
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Users can read other user profiles, but only update their own.
-    // They can also create their own user document.
+    // Les utilisateurs peuvent lire les profils des autres, mais ne modifier que le leur.
     match /users/{userId} {
       allow read: if request.auth != null;
       allow create, update, delete: if request.auth.uid == userId;
     }
+
+    // Règle générale : les utilisateurs ne peuvent accéder (lire, écrire, supprimer) 
+    // qu'aux documents qui se trouvent dans un chemin qui leur est propre.
+    // Par exemple, /tasks/{userId}/... ou /shopping/{userId}/...
+    match /{collection}/{userId}/{documents=**} {
+      allow read, write, delete: if request.auth != null && request.auth.uid == userId;
+    }
     
-    // By default, deny all other reads and writes
+    // Par défaut, refuser toutes les autres lectures et écritures.
     match /{document=**} {
       allow read, write: if false;
     }
