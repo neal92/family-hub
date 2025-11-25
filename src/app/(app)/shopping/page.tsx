@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -8,38 +9,40 @@ import { Input } from '@/components/ui/input';
 import { Plus } from 'lucide-react';
 import { ShoppingList } from '@/components/shopping-list';
 import type { ShoppingItem } from '@/lib/types';
+import { Label } from '@/components/ui/label';
 
 export default function ShoppingPage() {
   const [list, setList] = useState(initialShoppingList);
   const [newItemName, setNewItemName] = useState('');
+  const [newItemCategory, setNewItemCategory] = useState('Divers');
 
   const handleAddItem = () => {
-    if (newItemName.trim() === '') return;
+    if (newItemName.trim() === '' || newItemCategory.trim() === '') return;
 
     const newItem: ShoppingItem = {
       id: `shop-${Date.now()}`,
       name: newItemName.trim(),
-      category: 'Divers',
+      category: newItemCategory.trim(),
       purchased: false,
     };
 
     setList(currentList => {
-      const otherCategoryIndex = currentList.findIndex(
-        cat => cat.category === 'Divers'
+      const categoryIndex = currentList.findIndex(
+        cat => cat.category.toLowerCase() === newItem.category.toLowerCase()
       );
 
       let newList = [...currentList];
 
-      if (otherCategoryIndex > -1) {
-        // Add to existing "Divers" category
-        const newItems = [...newList[otherCategoryIndex].items, newItem];
-        newList[otherCategoryIndex] = {
-          ...newList[otherCategoryIndex],
+      if (categoryIndex > -1) {
+        // Add to existing category
+        const newItems = [...newList[categoryIndex].items, newItem];
+        newList[categoryIndex] = {
+          ...newList[categoryIndex],
           items: newItems,
         };
       } else {
-        // Add new "Divers" category
-        newList.push({ category: 'Divers', items: [newItem] });
+        // Add new category
+        newList.push({ category: newItem.category, items: [newItem] });
       }
 
       return newList;
@@ -66,16 +69,29 @@ export default function ShoppingPage() {
     <div className="container mx-auto px-4 py-8">
       <PageHeader title="Liste de courses" description="Une liste partagée pour tous les besoins de votre famille. Mise à jour en temps réel." />
       
-      <div className="mb-6 flex gap-2">
-        <Input 
-          placeholder="Ajouter un nouvel article (ex: 'Oeufs')" 
-          className="flex-grow"
-          value={newItemName}
-          onChange={(e) => setNewItemName(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && handleAddItem()}
-        />
-        <Button onClick={handleAddItem}>
-          <Plus className="mr-2 h-4 w-4" /> Ajouter un article
+      <div className="mb-6 flex flex-col md:flex-row gap-4 items-end">
+        <div className="flex-grow w-full">
+          <Label htmlFor="itemName">Nom de l'article</Label>
+          <Input
+            id="itemName" 
+            placeholder="Ex: 'Oeufs'"
+            value={newItemName}
+            onChange={(e) => setNewItemName(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleAddItem()}
+          />
+        </div>
+        <div className="w-full md:w-auto">
+          <Label htmlFor="itemCategory">Catégorie</Label>
+          <Input
+            id="itemCategory" 
+            placeholder="Ex: 'Produits laitiers'" 
+            value={newItemCategory}
+            onChange={(e) => setNewItemCategory(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleAddItem()}
+          />
+        </div>
+        <Button onClick={handleAddItem} className="w-full md:w-auto">
+          <Plus className="mr-2 h-4 w-4" /> Ajouter
         </Button>
       </div>
 
