@@ -16,40 +16,19 @@ interface TasksContextType {
 const TasksContext = createContext<TasksContextType | undefined>(undefined);
 
 export const TasksProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const { data: session } = useSession();
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (session) {
-      fetch('/api/tasks')
-        .then(res => res.json())
-        .then(data => {
-          const tasksWithDates = data.map((task: any) => ({
-            ...task,
-            dueDate: new Date(task.dueDate)
-          }));
-          setTasks(tasksWithDates);
-          setLoading(false);
-        })
-        .catch(() => setLoading(false));
-    } else {
-      setLoading(false);
-    }
-  }, [session]);
+  const [loading, setLoading] = useState(false);
 
   const addTasks = (newTasks: Task[]) => {
     setTasks(prevTasks => [...prevTasks, ...newTasks]);
   };
-  
   const toggleTask = (taskId: string, completed: boolean) => {
-    setTasks(prevTasks => 
-      prevTasks.map(task => 
+    setTasks(prevTasks =>
+      prevTasks.map(task =>
         task.id === taskId ? { ...task, completed } : task
       )
     );
   };
-
   const deleteTask = (taskId: string) => {
     setTasks(prevTasks => prevTasks.filter(task => task.id !== taskId));
   };
