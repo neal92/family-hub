@@ -1,15 +1,8 @@
 'use client';
 
+export const runtime = 'edge';
+
 import { useState } from 'react';
-import {
-  signInWithEmailAndPassword,
-  GoogleAuthProvider,
-  signInWithPopup,
-  createUserWithEmailAndPassword,
-  updateProfile,
-} from 'firebase/auth';
-import { doc, setDoc } from 'firebase/firestore';
-import { useAuth, useFirestore } from '@/firebase';
 import { Home, Mail, KeyRound, User, Cake } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,8 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
+import { signIn } from 'next-auth/react';
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid" viewBox="0 0 256 262" {...props}>
@@ -32,8 +24,7 @@ const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
   );
 
 export default function LoginPage() {
-  const { auth } = useAuth();
-  const firestore = useFirestore();
+  // ...existing code...
   const { toast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -44,126 +35,88 @@ export default function LoginPage() {
   const [age, setAge] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const redirectTo = searchParams.get('redirect') || '/dashboard';
+  const redirectTo = searchParams?.get?.('redirect') || '/dashboard';
 
   const handleAuthSuccess = () => {
     router.push(redirectTo);
   };
 
   const handleAuthError = (error: any, action: 'connexion' | 'inscription') => {
-    console.error(error);
     let description = `Une erreur est survenue lors de la tentative de ${action}.`;
-    
-    switch (error.code) {
-      case 'auth/configuration-not-found':
-        description = "La méthode de connexion Google n'est pas activée dans la console Firebase. Veuillez l'activer pour continuer.";
-        break;
-      case 'auth/weak-password':
-        description = "Le mot de passe est trop faible. Il doit contenir au moins 6 caractères.";
-        break;
-      case 'auth/email-already-in-use':
-        description = "Cette adresse e-mail est déjà utilisée par un autre compte.";
-        break;
-      case 'auth/invalid-credential':
-        description = "L'adresse e-mail ou le mot de passe est incorrect. Veuillez réessayer.";
-        break;
-      default:
-        description = error.message || description;
-        break;
-    }
-
+    if (error?.message) description = error.message;
     toast({
       variant: 'destructive',
       title: `Erreur de ${action}`,
-      description: description,
+      description,
     });
   };
 
-  const createUserProfile = async (user: import('firebase/auth').User, additionalData: Record<string, any> = {}) => {
-    if (!firestore) return;
-    const userRef = doc(firestore, 'users', user.uid);
-    const profileData = {
-      id: user.uid,
-      name: user.displayName || additionalData.name || 'Nouveau membre',
-      email: user.email,
-      avatarUrl: user.photoURL || `https://i.pravatar.cc/150?u=${user.uid}`,
-      age: additionalData.age ? parseInt(additionalData.age, 10) : null,
-      skills: additionalData.skills || '',
-      role: 'member',
-    };
-    
-    try {
-        await setDoc(userRef, profileData);
-    } catch (serverError: any) {
-        const permissionError = new FirestorePermissionError({
-            path: userRef.path,
-            operation: 'create',
-            requestResourceData: profileData,
-        });
-        errorEmitter.emit('permission-error', permissionError);
-        // Re-throw to allow the caller to handle it if needed
-        throw serverError;
-    }
-  };
+  // Suppression de la logique Firebase, profil géré côté backend
 
   const handleEmailSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!auth) return;
     setIsLoading(true);
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      handleAuthSuccess();
-    } catch (error) {
-      handleAuthError(error, 'connexion');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleEmailSignUp = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!auth || !firestore) return;
-    
-    setIsLoading(true);
-    
-    // Non-blocking call
-    createUserWithEmailAndPassword(auth, email, password)
-      .then(async (userCredential) => {
-        await updateProfile(userCredential.user, { displayName: name });
-        await createUserProfile(userCredential.user, { name, age });
-        
-        toast({
-          title: 'Compte créé !',
-          description: 'Bienvenue. Vous allez être redirigé.',
-        });
-        // The onAuthStateChanged listener will handle the redirect
-      })
-      .catch((error) => {
-        handleAuthError(error, 'inscription');
-        setIsLoading(false); // Only set loading to false on error
+      const res = await signIn('credentials', {
+        redirect: false,
+        email,
+        password,
       });
-      
-    // Redirect immediately, auth state change will be handled by the listener
-    handleAuthSuccess();
-  };
-
-  const handleGoogleSignIn = async () => {
-    if (!auth || !firestore) return;
-    setIsLoading(true);
-    try {
-      const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, provider);
-      // Check if user is new to create profile
-      if (result.user.metadata.creationTime === result.user.metadata.lastSignInTime) {
-        await createUserProfile(result.user);
-      }
+      if (res?.error) throw new Error(res.error);
       handleAuthSuccess();
-    } catch (error) {
+    } catch (error: any) {
       handleAuthError(error, 'connexion');
     } finally {
       setIsLoading(false);
     }
   };
+
+  const handleEmailSignUp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    try {
+      const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, name, age }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Erreur lors de la création du compte');
+      toast({
+        title: 'Compte créé !',
+        description: 'Bienvenue. Vous allez être redirigé.',
+      });
+      // Connexion automatique après inscription
+      await handleEmailSignIn(e);
+    } catch (error: any) {
+      handleAuthError(error, 'inscription');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  async function handleGoogleSignIn(e: React.MouseEvent<HTMLButtonElement>) {
+    e.preventDefault();
+    setIsLoading(true);
+    try {
+      // Ask NextAuth for the provider redirect URL (no immediate navigation by signIn)
+      const res = await signIn('google', { redirect: false, callbackUrl: redirectTo });
+      if (res?.error) throw new Error(res.error);
+
+      // If NextAuth returned a URL, navigate there (this will usually be the provider consent page)
+      if (res?.url) {
+        window.location.href = res.url;
+      } else {
+        // Fallback: consider the auth successful and navigate to the app
+        handleAuthSuccess();
+      }
+    } catch (error: any) {
+      handleAuthError(error, 'connexion');
+    } finally {
+      setIsLoading(false);
+    }
+  }
+  // Google SignIn à adapter plus tard avec NextAuth.js
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-muted/40 p-4">

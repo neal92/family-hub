@@ -52,7 +52,7 @@ export async function suggestMealIdeas(input: SuggestMealIdeasInput): Promise<{ 
           model: 'googleai/imagen-4.0-fast-generate-001',
           prompt: `A delicious, professionally photographed image of ${suggestion.name}, ${suggestion.description}`,
         });
-        return { ...suggestion, imageUrl: media.url };
+        return { ...suggestion, imageUrl: media?.url };
       } catch (error) {
         console.error(`Failed to generate image for ${suggestion.name}:`, error);
         // Return the suggestion without an image if generation fails

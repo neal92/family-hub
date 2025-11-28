@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { suggestMealIdeas } from '@/ai/flows/suggest-meal-ideas';
+// import { suggestMealIdeas } from '@/ai/flows/suggest-meal-ideas';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -38,8 +38,19 @@ export function MealSuggester() {
     setError(null);
     startTransition(async () => {
       try {
-        const response = await suggestMealIdeas(input);
-        setResult(response.mealSuggestions);
+        const res = await fetch('/api/suggest-meal-ideas', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(input),
+        });
+        if (!res.ok) {
+          const data = await res.json();
+          throw new Error(data.error || 'Erreur serveur');
+        }
+        const data = await res.json();
+        setResult(data.mealSuggestions);
       } catch (e) {
         setError(e instanceof Error ? e.message : 'Une erreur inconnue est survenue.');
       }

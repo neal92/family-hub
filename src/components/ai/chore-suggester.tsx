@@ -1,41 +1,46 @@
 'use client';
 
-import { useState, useTransition } from 'react';
-import { suggestChores, SuggestChoresOutput } from '@/ai/flows/suggest-chores';
+import { useState, useTransition, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Sparkles, Loader2, Users, ListChecks, PlusCircle } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
-import { useTasks } from '@/contexts/tasks-context';
-import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection } from 'firebase/firestore';
 import type { User } from '@/lib/types';
 
+type SuggestChoresOutput = Array<{
+  familyMember: string;
+  chore: string;
+}>;
 
 export function ChoreSuggester() {
   const [isPending, startTransition] = useTransition();
   const [result, setResult] = useState<SuggestChoresOutput | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const { addTasks } = useTasks();
-  
-  const firestore = useFirestore();
-  const familyMembersCollection = useMemoFirebase(() => collection(firestore, 'users'), [firestore]);
-  const { data: familyMembers, isLoading: loading } = useCollection(familyMembersCollection);
+  const [familyMembers, setFamilyMembers] = useState<User[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    setLoading(true);
+    fetch('/api/family-members')
+      .then(res => res.json())
+      .then(data => {
+        setFamilyMembers(data);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, []);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!familyMembers) return;
-
     const formData = new FormData(event.currentTarget);
     const chores = (formData.get('chores') as string).split('\n').filter(c => c.trim() !== '');
-    
     if (chores.length === 0) {
-      setError("Veuillez entrer au moins une corvée.");
+      setError('Veuillez entrer au moins une corvée.');
       return;
     }
-
     const input = {
       familyMembers: familyMembers.map(m => ({
         name: m.name,
@@ -45,37 +50,49 @@ export function ChoreSuggester() {
       })),
       chores,
     };
-
     setResult(null);
     setError(null);
     startTransition(async () => {
       try {
-        const response = await suggestChores(input);
-        setResult(response);
+        const response = await fetch('/api/suggest-chores', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(input),
+        });
+        if (!response.ok) {
+          const data = await response.json();
+          throw new Error(data.error || 'Erreur serveur');
+        }
+        const data = await response.json();
+        setResult(data);
       } catch (e) {
         setError(e instanceof Error ? e.message : 'Une erreur inconnue est survenue.');
       }
     });
   };
 
-  const handleAddTasks = () => {
+  const handleAddTasks = async () => {
     if (!result || !familyMembers) return;
-
     const newTasks = result.map(assignment => {
       const member = familyMembers.find(m => m.name === assignment.familyMember);
       return {
-        id: `task-${Date.now()}-${Math.random()}`,
         title: assignment.chore,
         assignedTo: member ? member.id : 'unassigned',
-        dueDate: new Date(new Date().setDate(new Date().getDate() + 7)), // Due in 7 days
+        dueDate: new Date(new Date().setDate(new Date().getDate() + 7)),
         completed: false,
       };
     });
-    addTasks(newTasks);
-    // Optionally clear the results after adding
-    setResult(null); 
+    try {
+      await fetch('/api/tasks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newTasks),
+      });
+      setResult(null);
+    } catch {
+      setError('Erreur lors de l’ajout des tâches.');
+    }
   };
-
 
   const getInitials = (name: string) => name ? name.charAt(0).toUpperCase() : '';
 
@@ -128,7 +145,6 @@ export function ChoreSuggester() {
           </CardFooter>
         </form>
       </Card>
-      
       <Card className="flex flex-col">
         <CardHeader>
           <CardTitle className="font-headline">Attributions suggérées</CardTitle>
@@ -152,7 +168,7 @@ export function ChoreSuggester() {
                     <div className="flex-1">
                       <p className="font-semibold">{assignment.chore}</p>
                       <p className="text-sm text-muted-foreground">Assigné à <span className="font-medium text-foreground">{assignment.familyMember}</span></p>
-                      <p className="text-xs text-muted-foreground mt-1 italic">"{assignment.reason}"</p>
+                      {/* <p className="text-xs text-muted-foreground mt-1 italic">"{assignment.reason}"</p> */}
                     </div>
                   </li>
                 );
@@ -167,7 +183,7 @@ export function ChoreSuggester() {
             )
           )}
         </CardContent>
-         {result && result.length > 0 && (
+        {result && result.length > 0 && (
           <CardFooter>
             <Button onClick={handleAddTasks} className="w-full">
               <PlusCircle className="mr-2 h-4 w-4" />

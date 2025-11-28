@@ -23,9 +23,7 @@ import {
 } from '@/components/ui/sidebar';
 import Link from 'next/link';
 import { BottomBar, BottomBarItem } from '@/components/bottom-bar';
-import { useAuth, useUser as useAuthUser, useDoc, useMemoFirebase } from '@/firebase';
-import { doc } from 'firebase/firestore';
-import { useFirestore } from '@/firebase';
+import { useSession, signOut } from 'next-auth/react';
 import type { User } from '@/lib/types';
 
 
@@ -45,13 +43,8 @@ const secondaryNavItems = [
 export function AppSidebar() {
   const pathname = usePathname();
   const { isMobile } = useSidebar();
-  const { signOut } = useAuth();
-  const { user: authUser } = useAuthUser();
-  const firestore = useFirestore();
-
-  const userRef = useMemoFirebase(() => (authUser ? doc(firestore, 'users', authUser.uid) : null), [authUser, firestore]);
-  const { data: userData } = useDoc(userRef);
-  const currentUser = userData as User | undefined;
+  const { data: session } = useSession();
+  const currentUser = session?.user as User | undefined;
   const isAdmin = currentUser?.role === 'admin';
 
 
@@ -71,8 +64,16 @@ export function AppSidebar() {
             href="/assistant"
             icon={Sparkles}
             label="Assistant"
-            isActive={pathname.startsWith('/assistant')}
+            isActive={pathname?.startsWith('/assistant')}
         />
+        {isAdmin && (
+          <BottomBarItem 
+            href="/family"
+            icon={Users}
+            label="Famille"
+            isActive={pathname?.startsWith('/family')}
+          />
+        )}
       </BottomBar>
     );
   }
@@ -113,7 +114,7 @@ export function AppSidebar() {
               <Link href={item.href}>
                 <SidebarMenuButton
                   asChild
-                  isActive={pathname.startsWith(item.href)}
+                  isActive={pathname?.startsWith(item.href)}
                   tooltip={item.label}
                 >
                   <span>
@@ -130,7 +131,7 @@ export function AppSidebar() {
         <SidebarMenu>
           <SidebarMenuItem>
              <Link href="/profile">
-                <SidebarMenuButton tooltip="Profil & Paramètres" isActive={pathname.startsWith('/profile')}>
+                <SidebarMenuButton tooltip="Profil & Paramètres" isActive={pathname?.startsWith('/profile')}>
                   <Settings />
                   <span>Profil & Paramètres</span>
                 </SidebarMenuButton>

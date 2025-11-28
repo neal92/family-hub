@@ -1,0 +1,74 @@
+// Prisma schema for Family Hub with PostgreSQL
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id            String         @id @default(uuid())
+  name          String
+  email         String         @unique
+  password      String
+  avatarUrl     String?
+  age           Int?
+  skills        String?
+  availability  String?
+  role          String         @default("member")
+  events        Event[]        @relation("UserEvents")
+  eventsAttended Event[]       @relation("EventAttendees")
+  tasks         Task[]
+  documents     Document[]
+  shoppingItems ShoppingItem[]
+}
+
+model Event {
+  id          String   @id @default(uuid())
+  title       String
+  date        DateTime
+  description String
+  attendees   User[]   @relation("EventAttendees")
+  userId      String
+  user        User     @relation("UserEvents", fields: [userId], references: [id])
+}
+
+model Task {
+  id          String   @id @default(uuid())
+  title       String
+  assignedTo  String
+  dueDate     DateTime
+  completed   Boolean @default(false)
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+}
+
+model ShoppingItem {
+  id          String   @id @default(uuid())
+  name        String
+  category    String
+  purchased   Boolean @default(false)
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+}
+
+model Document {
+  id          String   @id @default(uuid())
+  name        String
+  category    String
+  dateAdded   DateTime
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+}
+
+model Invitation {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdBy String
+  createdAt DateTime @default(now())
+}

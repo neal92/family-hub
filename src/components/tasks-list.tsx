@@ -11,8 +11,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useTasks } from '@/contexts/tasks-context';
 import { Button } from './ui/button';
 import { Trash2, Loader2 } from 'lucide-react';
-import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection } from 'firebase/firestore';
+import { useState, useEffect } from 'react';
 
 type TasksListProps = {
   tasks: Task[];
@@ -20,9 +19,19 @@ type TasksListProps = {
 
 export function TasksList({ tasks }: TasksListProps) {
   const { toggleTask, deleteTask } = useTasks();
-  const firestore = useFirestore();
-  const familyMembersCollection = useMemoFirebase(() => collection(firestore, 'users'), [firestore]);
-  const { data: allFamilyMembers, isLoading: loading } = useCollection(familyMembersCollection);
+  const [allFamilyMembers, setAllFamilyMembers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    setLoading(true);
+    fetch('/api/family-members')
+      .then(res => res.json())
+      .then(data => {
+        setAllFamilyMembers(data);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, []);
 
   const getInitials = (name: string) => name ? name.charAt(0).toUpperCase() : '';
 

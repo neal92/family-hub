@@ -11,25 +11,35 @@ import Link from 'next/link';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useTasks } from '@/contexts/tasks-context';
-import { useFirestore, useUser as useAuthUser, useDoc, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, doc } from 'firebase/firestore';
+import { useSession } from 'next-auth/react';
+import { useState, useEffect } from 'react';
 import type { User } from '@/lib/types';
+
+export const dynamic = 'force-dynamic';
 
 
 export default function DashboardPage() {
-  const { user: authUser, isUserLoading: authLoading } = useAuthUser();
-  const { tasks, toggleTask } = useTasks();
-  const firestore = useFirestore();
+  const { data: session } = useSession();
+  const { tasks, toggleTask, loading: tasksLoading } = useTasks();
+  const [familyMembers, setFamilyMembers] = useState<User[]>([]);
+  const [familyMembersLoading, setFamilyMembersLoading] = useState(true);
 
-  // Fetch only the current user's data
-  const userRef = useMemoFirebase(() => authUser ? doc(firestore, 'users', authUser.uid) : null, [authUser, firestore]);
-  const { data: currentUser, isLoading: userLoading } = useDoc(userRef);
-  
-  // Fetch all family members for tasks and other components that might need them
-  const familyMembersCollection = useMemoFirebase(() => collection(firestore, 'users'), [firestore]);
-  const { data: familyMembers, isLoading: familyMembersLoading } = useCollection(familyMembersCollection);
+  useEffect(() => {
+    if (session) {
+      fetch('/api/family-members')
+        .then(res => res.json())
+        .then(data => {
+          setFamilyMembers(data);
+          setFamilyMembersLoading(false);
+        })
+        .catch(() => setFamilyMembersLoading(false));
+    } else {
+      setFamilyMembersLoading(false);
+    }
+  }, [session]);
 
-  const pageLoading = authLoading || userLoading || familyMembersLoading;
+  const currentUser = session?.user as User | undefined;
+  const pageLoading = tasksLoading || familyMembersLoading;
 
   const upcomingEvents = events.slice(0, 3);
   const todaysTasks = tasks.filter(t => !t.completed).slice(0, 4);

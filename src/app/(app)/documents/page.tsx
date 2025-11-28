@@ -10,10 +10,10 @@ import { Upload, Download, Trash2, FileText, Shield, HeartPulse, Banknote, Loade
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
-import { useFirestore, useUser as useAuthUser, useDoc, useMemoFirebase } from '@/firebase';
-import { doc } from 'firebase/firestore';
+import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import type { User } from '@/lib/types';
 
 const categoryIcons = {
   Insurance: <Shield className="h-4 w-4" />,
@@ -30,23 +30,19 @@ const categoryColors = {
 }
 
 export default function DocumentsPage() {
-  const firestore = useFirestore();
-  const { user: authUser, isUserLoading: authLoading } = useAuthUser();
+  const { data: session } = useSession();
   const router = useRouter();
 
-  const userRef = useMemoFirebase(() => (authUser ? doc(firestore, 'users', authUser.uid) : null), [authUser, firestore]);
-  const { data: currentUserData, isLoading: currentUserLoading } = useDoc(userRef);
-  
-  const pageLoading = authLoading || currentUserLoading;
+  const currentUser = session?.user as User | undefined;
 
   useEffect(() => {
-    if (!pageLoading && currentUserData?.role !== 'admin') {
+    if (currentUser?.role !== 'admin') {
       router.replace('/dashboard');
     }
-  }, [pageLoading, currentUserData, router]);
+  }, [currentUser, router]);
 
 
-  if (pageLoading || currentUserData?.role !== 'admin') {
+  if (currentUser?.role !== 'admin') {
     return (
         <div className="container mx-auto px-4 py-8 flex justify-center">
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground"/>
