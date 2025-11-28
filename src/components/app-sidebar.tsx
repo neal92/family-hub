@@ -25,6 +25,7 @@ import Link from 'next/link';
 import { BottomBar, BottomBarItem } from '@/components/bottom-bar';
 import { useSession, signOut } from 'next-auth/react';
 import type { User } from '@/lib/types';
+import { memo } from 'react';
 
 
 const mainNavItems = [
@@ -40,7 +41,7 @@ const secondaryNavItems = [
   { href: '/family', icon: Users, label: 'Famille', adminOnly: true },
 ]
 
-export function AppSidebar() {
+export const AppSidebar = memo(function AppSidebar() {
   const pathname = usePathname();
   const { isMobile } = useSidebar();
   const { data: session } = useSession();
@@ -147,4 +148,4 @@ export function AppSidebar() {
       </SidebarFooter>
     </Sidebar>
   );
-}
+})

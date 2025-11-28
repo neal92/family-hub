@@ -11,7 +11,6 @@ export async function GET() {
     }
 
     const tasks = await prisma.task.findMany({
-      include: { user: true },
       orderBy: { dueDate: 'asc' }
     });
 

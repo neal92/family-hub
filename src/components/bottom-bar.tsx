@@ -3,8 +3,9 @@
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import type { LucideIcon } from 'lucide-react';
+import { memo } from 'react';
 
-export function BottomBar({ children }: { children: React.ReactNode }) {
+export const BottomBar = memo(function BottomBar({ children }: { children: React.ReactNode }) {
   return (
     <div className="fixed bottom-0 left-0 z-50 w-full h-16 bg-background border-t border-border md:hidden">
       <div className="grid h-full max-w-lg grid-cols-5 mx-auto font-medium">
@@ -12,7 +13,7 @@ export function BottomBar({ children }: { children: React.ReactNode }) {
       </div>
     </div>
   );
-}
+});
 
 type BottomBarItemProps = {
   href: string;
@@ -21,7 +22,7 @@ type BottomBarItemProps = {
   isActive?: boolean;
 };
 
-export function BottomBarItem({ href, label, icon: Icon, isActive }: BottomBarItemProps) {
+export const BottomBarItem = memo(function BottomBarItem({ href, label, icon: Icon, isActive }: BottomBarItemProps) {
   return (
     <Link
       href={href}
@@ -34,4 +35,4 @@ export function BottomBarItem({ href, label, icon: Icon, isActive }: BottomBarIt
       <span className="text-xs">{label}</span>
     </Link>
   );
-}
+});
