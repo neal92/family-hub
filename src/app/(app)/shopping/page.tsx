@@ -2,7 +2,8 @@
 'use client';
 
 import { useState } from 'react';
-import { shoppingList as initialShoppingList } from '@/lib/data';
+// import { apiUrl } from '@/lib/api';
+// import { shoppingList as initialShoppingList } from '@/lib/data';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,34 +11,60 @@ import { Plus } from 'lucide-react';
 import { ShoppingList } from '@/components/shopping-list';
 import type { ShoppingItem } from '@/lib/types';
 import { Label } from '@/components/ui/label';
+import { useEffect } from 'react';
 
-// Flatten the initial list
-const flatInitialList = initialShoppingList.flatMap(category => category.items);
+// Les items sont maintenant chargés depuis l'API
 
 export default function ShoppingPage() {
-  const [list, setList] = useState<ShoppingItem[]>(flatInitialList);
+  const [list, setList] = useState<ShoppingItem[]>([]);
+    const [loading, setLoading] = useState(true);
+    // Charger la liste depuis l'API au montage
+    useEffect(() => {
+      fetch('/api/shopping')
+        .then(res => res.json())
+        .then(data => {
+          setList(Array.isArray(data) ? data : []);
+          setLoading(false);
+        })
+        .catch(() => {
+          setList([]);
+          setLoading(false);
+        });
+    }, []);
   const [newItemName, setNewItemName] = useState('');
 
-  const handleAddItem = () => {
+  const handleAddItem = async () => {
     if (newItemName.trim() === '') return;
-
-    const newItem: ShoppingItem = {
-      id: `shop-${Date.now()}`,
-      name: newItemName.trim(),
-      category: 'Default', // No longer used, but kept for type consistency
-      purchased: false,
-    };
-
+    const res = await fetch('/api/shopping', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: newItemName.trim() })
+    });
+    const newItem = await res.json();
     setList(currentList => [...currentList, newItem]);
     setNewItemName('');
   };
 
-  const handlePurchase = (itemId: string, purchased: boolean) => {
-    setList(list.map(item => item.id === itemId ? { ...item, purchased } : item));
+  const handlePurchase = async (itemId: string, purchased: boolean) => {
+    const res = await fetch('/api/shopping', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: itemId, purchased })
+    });
+    const updated = await res.json();
+    setList(list.map(item => item.id === itemId ? updated : item));
   };
 
-  const handleDelete = (itemId: string) => {
-    setList(list.filter(item => item.id !== itemId));
+  const handleDelete = async (itemId: string) => {
+    const res = await fetch('/api/shopping', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: itemId })
+    });
+    const result = await res.json();
+    if (result.success) {
+      setList(list.filter(item => item.id !== itemId));
+    }
   };
   
   return (
@@ -60,11 +87,16 @@ export default function ShoppingPage() {
         </Button>
       </div>
 
-      <ShoppingList 
-        items={list}
-        onPurchase={handlePurchase}
-        onDelete={handleDelete}
-      />
+      {loading ? (
+        <div className="flex justify-center"><span>Chargement...</span></div>
+      ) : (
+        <ShoppingList 
+          items={list}
+          onPurchase={handlePurchase}
+          onDelete={handleDelete}
+        />
+      )}
     </div>
   );
 }
+

@@ -36,9 +36,17 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (session?.user) {
-      // For now, use session data, but in future, fetch full user data from API
-      setUserData(session.user as User);
-      setLoading(false);
+      const email = session.user.email || '';
+      fetch(`/api/users?email=${encodeURIComponent(email)}`)
+        .then(res => res.json())
+        .then(data => {
+          setUserData(data);
+          setLoading(false);
+        })
+        .catch(() => {
+          setUserData(session.user as User);
+          setLoading(false);
+        });
     }
   }, [session]);
 
@@ -75,11 +83,31 @@ export default function ProfilePage() {
   const getInitials = (name: string) => name ? name.charAt(0).toUpperCase() : '';
 
   const onSubmit: SubmitHandler<ProfileFormValues> = async (data) => {
-    console.log('Profile update:', data);
-    toast({
-      title: 'Profil mis à jour !',
-      description: 'Vos informations ont été sauvegardées avec succès.',
+    if (!userData) return;
+    const res = await fetch('/api/users', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id: userData.id,
+        name: data.name,
+        age: data.age === '' ? null : data.age,
+        skills: data.skills,
+      })
     });
+    if (res.ok) {
+      const result = await res.json();
+      setUserData(result.user);
+      toast({
+        title: 'Profil mis à jour !',
+        description: 'Vos informations ont été sauvegardées avec succès.',
+      });
+    } else {
+      toast({
+        title: 'Erreur',
+        description: "Impossible d'enregistrer les modifications.",
+        variant: 'destructive',
+      });
+    }
   };
   
   const totalSubmitting = isSubmitting;

@@ -49,10 +49,9 @@ model Task {
 model ShoppingItem {
   id          String   @id @default(uuid())
   name        String
-  category    String
   purchased   Boolean @default(false)
-  userId      String
-  user        User     @relation(fields: [userId], references: [id])
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id])
 }
 
 model Document {

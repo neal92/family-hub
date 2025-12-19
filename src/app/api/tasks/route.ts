@@ -7,13 +7,16 @@ export async function GET() {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
-      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
+      return NextResponse.json([]); // Retourne une liste vide si non connecté
     }
-
+    const user = await prisma.user.findUnique({ where: { email: session.user.email } });
+    if (!user) {
+      return NextResponse.json([]);
+    }
     const tasks = await prisma.task.findMany({
+      where: { userId: user.id },
       orderBy: { dueDate: 'asc' }
     });
-
     return NextResponse.json(tasks);
   } catch (error) {
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });

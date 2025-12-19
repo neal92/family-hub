@@ -1,6 +1,6 @@
 'use client';
 
-import { events } from '@/lib/data';
+// import { events } from '@/lib/data';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Calendar as CalendarIcon, Plus, Loader2 } from 'lucide-react';
@@ -18,6 +18,7 @@ export default function CalendarPage() {
   const [date, setDate] = useState<Date | undefined>(undefined);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [familyMembers, setFamilyMembers] = useState<User[]>([]);
+  const [events, setEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -25,13 +26,20 @@ export default function CalendarPage() {
     setDate(today);
     setSelectedDate(today);
 
-    fetch('/api/family-members')
-      .then(res => res.json())
-      .then(data => {
-        setFamilyMembers(data);
+    Promise.all([
+      fetch('/api/family-members').then(res => res.json()),
+      fetch('/api/events').then(res => res.json())
+    ])
+      .then(([members, events]) => {
+        setFamilyMembers(Array.isArray(members) ? members : []);
+        setEvents(Array.isArray(events) ? events : []);
         setLoading(false);
       })
-      .catch(() => setLoading(false));
+      .catch(() => {
+        setFamilyMembers([]);
+        setEvents([]);
+        setLoading(false);
+      });
   }, []);
 
   const handleDateSelect = (selectedDate: Date | undefined) => {
@@ -97,7 +105,7 @@ export default function CalendarPage() {
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium">Participants:</span>
                     <div className="flex -space-x-2">
-                      {event.attendees.map(userId => {
+                      {(event.attendees as string[]).map((userId: string) => {
                         const member = familyMembers.find(m => m.id === userId);
                         return member ? (
                           <Avatar key={member.id} className="border-2 border-card h-8 w-8">

@@ -25,7 +25,8 @@ export default function DashboardPage() {
   const [familyMembersLoading, setFamilyMembersLoading] = useState(true);
 
   useEffect(() => {
-    if (session) {
+    const currentUser = session?.user as User | undefined;
+    if (session && currentUser?.role === 'admin') {
       fetch('/api/family-members')
         .then(res => res.json())
         .then(data => {

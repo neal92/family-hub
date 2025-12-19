@@ -21,16 +21,20 @@ export function TasksList({ tasks }: TasksListProps) {
   const { toggleTask, deleteTask } = useTasks();
   const [allFamilyMembers, setAllFamilyMembers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
-
   useEffect(() => {
-    setLoading(true);
-    fetch('/api/family-members')
-      .then(res => res.json())
-      .then(data => {
-        setAllFamilyMembers(data);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
+    const userRole = typeof window !== 'undefined' ? window.localStorage.getItem('role') : null;
+    if (userRole === 'admin') {
+      setLoading(true);
+      fetch('/api/family-members')
+        .then(res => res.json())
+        .then(data => {
+          setAllFamilyMembers(data);
+          setLoading(false);
+        })
+        .catch(() => setLoading(false));
+    } else {
+      setLoading(false);
+    }
   }, []);
 
   const getInitials = (name: string) => name ? name.charAt(0).toUpperCase() : '';

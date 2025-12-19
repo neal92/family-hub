@@ -12,11 +12,6 @@ async function checkAdmin(session: any) {
 
 export async function GET() {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
-    }
-
     const users = await prisma.user.findMany({
       select: {
         id: true,
@@ -29,7 +24,6 @@ export async function GET() {
         role: true
       }
     });
-
     return NextResponse.json(users);
   } catch (error) {
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
@@ -76,7 +70,6 @@ export async function POST(req: Request) {
         role: true
       }
     });
-
     return NextResponse.json(user);
   } catch (error) {
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
